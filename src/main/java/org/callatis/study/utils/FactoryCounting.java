@@ -3,9 +3,6 @@ package org.callatis.study.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 public class FactoryCounting {
 
 	public FactoryCounting() {
@@ -86,41 +83,6 @@ public class FactoryCounting {
 		}
 		
 		return result;
-	}
-	
-	@Test
-	public void test112() throws Exception {
-		final String[] county = new String[] { "NY", "YN" };
-		System.out.println("(1, 1, 2)=" + combinations(1, 1, county, 2));
-		Assert.assertEquals(2, count(1, 1, county));
-	}
-	
-	@Test
-	public void test213() throws Exception {
-		final String[] county = new String[] { "NYY", "YNY", "YYN" };
-		System.out.println("(2, 1, 3)=" + combinations(2, 1, county, 3));
-		Assert.assertEquals(3, count(2, 1, county));
-	}
-	
-	@Test
-	public void test114() throws Exception {
-		final String[] county = new String[] { "NYYY", "YNYY", "YYNY", "YYYN" };
-		System.out.println("(1, 1, 4)=" + combinations(1, 1, county, 4));
-		Assert.assertEquals(12, count(1, 1, county));
-	}
-	
-	@Test
-	public void test125() throws Exception {
-		final String[] county = new String[] { "NYYYY", "YNYYN", "YYNYY", "YYYNY", "YNYYN" };
-		System.out.println("(1, 2, 5)=" + combinations(1, 2, county, 5));
-		Assert.assertEquals(24, count(1, 2, county));
-	}
-	
-	@Test
-	public void test226() throws Exception {
-		final String[] county = new String[] { "NYYYYN", "YNYYNY", "YYNYYY", "YYYNYN", "YNYYNY", "NYYNYN" };
-		System.out.println("(2, 2, 6)=" + combinations(2, 2, county, 6));
-		Assert.assertEquals(32, count(2, 2, county));
 	}
 	
 	static class Pair<T> {
