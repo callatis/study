@@ -1,5 +1,8 @@
 package org.callatis.study.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BitFun {
 	
 	private BitFun() {}
@@ -28,6 +31,19 @@ public class BitFun {
 		} while (aa > 0);
 		
 		return count;
+	}
+	
+	public static List<Integer> toList(int a) {
+		List<Integer> result = new ArrayList<Integer>();
+		int aa = a;
+		do {
+			int firstBitPos = BitFun.lowestSetBitPosition(aa);
+			int firstBitVal = BitFun.lowestSetBitValue(aa);
+			aa = aa & (~firstBitVal);
+			result.add(firstBitPos);
+		} while (aa > 0);
+		
+		return result;
 	}
 
 }
