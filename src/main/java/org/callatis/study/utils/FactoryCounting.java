@@ -84,14 +84,5 @@ public class FactoryCounting {
 		
 		return result;
 	}
-	
-	static class Pair<T> {
-		public T x;
-		public T y;
-		
-		public String toString() {
-			return "(" + x + ", " + y + ")";
-		}
-	}
 
 }
