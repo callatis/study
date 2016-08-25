@@ -1,4 +1,4 @@
-package org.callatis.study.graphs;
+package org.callatis.study.trees;
 
 import org.junit.Assert;
 
