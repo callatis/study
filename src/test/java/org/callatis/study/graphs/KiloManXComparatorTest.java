@@ -1,4 +1,4 @@
-package org.study.callatis.graphs;
+package org.callatis.study.graphs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

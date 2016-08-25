@@ -1,4 +1,4 @@
-package org.study.callatis.graphs;
+package org.callatis.study.graphs;
 
 import java.util.Comparator;
 
