@@ -1,4 +1,4 @@
-package study.test.StudyTest;
+package org.callatis.study.solutions;
 
 import java.util.Date;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package study.test.StudyTest;
+package org.callatis.study.solutions;
 
 import java.util.Stack;
 

@@ -1,4 +1,4 @@
-package study.test.StudyTest;
+package org.callatis.study.solutions;
 
 import junit.framework.Assert;
 

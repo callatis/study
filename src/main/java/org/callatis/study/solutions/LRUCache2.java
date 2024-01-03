@@ -1,10 +1,10 @@
-package study.test.StudyTest;
+package org.callatis.study.solutions;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import study.test.StudyTest.DoubleLinkedList.Node;
+import org.callatis.study.solutions.DoubleLinkedList.Node;
 
 public class LRUCache2<K,V> {
 	

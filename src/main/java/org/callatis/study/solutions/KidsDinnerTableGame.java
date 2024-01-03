@@ -1,4 +1,4 @@
-package study.test.StudyTest;
+package org.callatis.study.solutions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import study.test.StudyTest.KidsDinnerTableGame.Word;
+import org.callatis.study.solutions.KidsDinnerTableGame.Word;
 
 /*
 FIXISLLP

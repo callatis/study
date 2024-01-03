@@ -10,7 +10,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
             </goals>
             <properties>
-                <exec.args>-classpath %classpath study.test.StudyTest.frameOne</exec.args>
+                <exec.args>-classpath %classpath org.callatis.study.solutions.frameOne</exec.args>
                 <exec.executable>java</exec.executable>
             </properties>
         </action>
