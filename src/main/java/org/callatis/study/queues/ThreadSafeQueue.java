@@ -1,4 +1,6 @@
 
+package org.callatis.study.queues;
+
 public class ThreadSafeQueue<T> implements ThreadUnsafeQueue<T> {
 	
 	private ThreadUnsafeQueue<T> queue;
