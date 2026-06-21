@@ -60,6 +60,20 @@ public class ThreeSumTest {
         assertEquals(expectedTriplets, actualTriplets);
     }
 
+    @Test
+    public void testExample4() {
+        // Input: nums = [0,0,0,0]
+        // Output: [[0,0,0]]
+        int[] nums = {0, 0, 0, 0};
+
+        List<List<Integer>> actual = threeSum.threeSum(nums);
+        List<String> actualTriplets = normalize(actual);
+
+        List<String> expectedTriplets = new ArrayList<>(Arrays.asList("0,0,0"));
+
+        assertEquals(expectedTriplets, actualTriplets);
+    }
+
     private List<String> normalize(List<List<Integer>> triplets) {
         return triplets.stream()
                 .map(triplet -> triplet.stream()
