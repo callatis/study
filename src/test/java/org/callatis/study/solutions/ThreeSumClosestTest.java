@@ -46,4 +46,14 @@ public class ThreeSumClosestTest {
         assertEquals(expected, threeSumClosest.threeSumClosest(nums, target));
     }
 
+    @Test
+    public void testExample4() {
+        // Input: nums = [4,0,5,-5,3,3,0,-4,-5], target = -2
+        // Output: -2
+        int[] nums = {4, 0, 5, -5, 3, 3, 0, -4, -5};
+        int target = -2;
+        int expected = -2;
+        assertEquals(expected, threeSumClosest.threeSumClosest(nums, target));
+    }
+
 }
