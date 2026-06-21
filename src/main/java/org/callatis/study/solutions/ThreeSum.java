@@ -35,13 +35,14 @@ public class ThreeSum {
         return new ArrayList<>(resultList);
     }
 
+    // 98% on LeetCode
     public List<List<Integer>> threeSumOptimized(int[] nums) {
         List<List<Integer>> resultList = new ArrayList<>();
         Arrays.sort(nums); // -4. -1, -1, 0, 1, 2
         int n = nums.length;
         int lastNumI = 1;
         for (int i = 0; i < n - 2 && nums[i] <= 0; i++) {
-            while (i < n - 2 && nums[i] == lastNumI) i++;
+            // while (i < n - 2 && nums[i] == lastNumI) i++;
             int numI = nums[i];
             // check if we haven't gotten above 0
             if (nums[i] > 0) { // short-circuit
@@ -54,26 +55,23 @@ public class ThreeSum {
                 int currSum = numI + numJ + numK;
                 if (currSum == 0) {
                     resultList.add(Arrays.asList(numI, numJ, numK));
-                    while (j < n - 1 && nums[j + 1] == numJ) {
+                    while (j < n - 1 && nums[j + 1] == numJ) { 
+                        // replacing n - 1 with k above should make it faster, but on LeetCode it's the opposite
                         j++;
                     }
                     j++; // one more time, to move onto the next value
                     while (k > 1 && nums[k - 1] == numK) {
+                        // replacing 1 with j above should make it faster, but on LeetCode it's the opposite
                         k--;
                     }
                     k--; // one more time, to move onto the next value
                 } else if (currSum > 0) {
-                    while (k > 1 && nums[k - 1] == numK) {
-                        k--;
-                    }
                     k--; // one more time, to move onto the next value
                 } else {
-                    while (j < n - 1 && nums[j + 1] == numJ) {
-                        j++;
-                    }
                     j++; // one more time, to move onto the next value
                 }
             }
+            while (i < n - 2 && nums[i + 1] == lastNumI) i++;
         }
 
         return resultList;
