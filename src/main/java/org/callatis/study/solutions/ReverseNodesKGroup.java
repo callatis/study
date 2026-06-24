@@ -79,11 +79,8 @@ public class ReverseNodesKGroup {
         ListNode origLast = last;
         
         while (dummy.next != origLast) { // could be i = 0, ..., k
-            ListNode curr = dummy.next; // repoint to the current head
-            dummy.next = curr.next; // unplug it
-            ListNode afterLast = origLast.next; // store it to avoid being overwritten
-            origLast.next = curr; // plug it right after the last; afterLast is now dangling
-            curr.next = afterLast;
+            ListNode curr = dummy.removeFirst(); // remove the head
+            origLast.insert(curr); // ... and insert it after the original tail
             if (last == origLast) { // first time the loop is evaluated - first element becomes last of the k
                 last = curr;
             }
