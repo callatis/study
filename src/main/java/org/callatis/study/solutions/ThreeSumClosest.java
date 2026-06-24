@@ -8,7 +8,23 @@ import java.util.TreeMap;
 
 public class ThreeSumClosest {
 
+    private final String implementation;
+
+    /* package */ ThreeSumClosest() {
+        this("optimized");
+    }
+
+    /* package */ ThreeSumClosest(String implementation) {
+        this.implementation = implementation;
+    }
+
     public int threeSumClosest(int[] nums, int target) {
+        if ("bruteForce".equals(implementation)) {
+            return threeSumClosestBruteForce(nums, target);
+        }
+        if ("partialOptimized".equals(implementation)) {
+            return threeSumClosestPartialOptimiz(nums, target);
+        }
         return threeSumClosestOptimized(nums, target);
     }
 
