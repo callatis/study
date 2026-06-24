@@ -15,8 +15,8 @@ public class ReverseNodesKGroupTest {
 
     @Test
     public void testExample0() {
-        // Input: head = [1,2,3,4,5], k = 2
-        // Output: [2,1,4,3,5]
+        // Input: head = [1,2,3], k = 2
+        // Output: [2,1,3]
         ReverseNodesKGroup.ListNode head = listOf(1, 2, 3);
         int k = 2;
 

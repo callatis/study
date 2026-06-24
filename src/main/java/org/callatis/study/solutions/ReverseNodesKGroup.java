@@ -8,9 +8,6 @@ public class ReverseNodesKGroup {
         int val;
         ListNode next;
 
-        ListNode() {
-        }
-
         ListNode(int val) {
             this.val = val;
         }
@@ -32,8 +29,8 @@ public class ReverseNodesKGroup {
         return p;
     }
 
-    private ListNode swapInPlace(ListNode startP, ListNode endP) {
-        return null;
+    public ListNode reverseKGroup(ListNode head, int k) {
+        return reverseKGroupInPlace(head, k);
     }
 
     private ListNode swapWithStack(ListNode startP, ListNode endP) {
@@ -62,7 +59,7 @@ public class ReverseNodesKGroup {
         return endP;
     }
 
-    public ListNode reverseKGroup(ListNode head, int k) {
+    public ListNode reverseKGroupWithStack(ListNode head, int k) {
 
         ListNode startP = head, endP = skipN(startP, k - 1), dummy = new ListNode(0, head), nextP;
         ListNode prevP = dummy;
@@ -76,6 +73,41 @@ public class ReverseNodesKGroup {
             startP = nextP;
             endP = startP == null ? null : skipN(startP, k - 1);
         }
+
+        return dummy.next;
+    }
+
+    private ListNode swapInPlace(ListNode dummy, int k) {
+        ListNode last = dummy.next;
+        // skip k nodes
+        for (int i = 0; i < k && last != null; i++) {
+            last = last.next;
+        }
+        if (last == null) {
+            return null;
+        }
+        ListNode origLast = last;
+        
+        while (dummy.next != origLast) { // could be i = 0, ..., k
+            ListNode curr = dummy.next; // repoint to the current head
+            dummy.next = curr.next; // unplug it
+            ListNode afterLast = origLast.next; // store it to avoid being overwritten
+            origLast.next = curr; // plug it right after the last; afterLast is now dangling
+            curr.next = afterLast;
+            if (last == origLast) { // first time the loop is evaluated - first element becomes last of the k
+                last = curr;
+            }
+        }
+
+        return last;
+    }
+
+    public ListNode reverseKGroupInPlace(ListNode head, int k) {
+        ListNode dummy = new ListNode(0, head);
+        ListNode prevP = dummy;
+        do { 
+            prevP = swapInPlace(prevP, k - 1);
+        } while (prevP != null);
 
         return dummy.next;
     }
