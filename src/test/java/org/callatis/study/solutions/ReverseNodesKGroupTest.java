@@ -1,16 +1,29 @@
 package org.callatis.study.solutions;
 
-import static org.junit.Assert.assertArrayEquals;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.Arrays;
+import java.util.Collection;
 
+import static org.junit.Assert.assertArrayEquals;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+@RunWith(Parameterized.class)
 public class ReverseNodesKGroupTest {
 
-    private ReverseNodesKGroup solver;
+    private final ReverseNodesKGroup solver;
 
-    @Before
-    public void setUp() {
-        solver = new ReverseNodesKGroup();
+    public ReverseNodesKGroupTest(boolean inPlace) {
+        this.solver = new ReverseNodesKGroup(inPlace);
+    }
+
+    @Parameters(name = "inPlace={0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+                {true},
+                {false}
+        });
     }
 
     @Test

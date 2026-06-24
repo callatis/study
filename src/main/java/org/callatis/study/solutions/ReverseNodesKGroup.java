@@ -4,8 +4,23 @@ import java.util.Stack;
 
 public class ReverseNodesKGroup {
 
-    ListNode reverseKGroup(ListNode head, int k) {
-        return reverseKGroupInPlace(head, k);
+    private boolean inPlace;
+
+    /* package */ ReverseNodesKGroup() {
+        this(true);
+    }
+
+    /* package */ ReverseNodesKGroup(boolean inPlace) {
+        this.inPlace = inPlace;
+    }
+
+
+    /* package */ ListNode reverseKGroup(ListNode head, int k) {
+        if (this.inPlace) {
+            return reverseKGroupInPlace(head, k);
+        } else {
+            return reverseKGroupWithStack(head, k);
+        }
     }
 
     private ListNode swapWithStack(ListNode startP, ListNode endP) {
