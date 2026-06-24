@@ -4,32 +4,7 @@ import java.util.Stack;
 
 public class ReverseNodesKGroup {
 
-    public static class ListNode {
-        int val;
-        ListNode next;
-
-        ListNode(int val) {
-            this.val = val;
-        }
-
-        ListNode(int val, ListNode next) {
-            this.val = val;
-            this.next = next;
-        }
-    }
-
-    private ListNode skipN(ListNode p, int k) {
-        for (int i = 0; i < k; i++) {
-            if (p.next == null) {
-                return null;
-            }
-            p = p.next;
-        }
-
-        return p;
-    }
-
-    public ListNode reverseKGroup(ListNode head, int k) {
+    ListNode reverseKGroup(ListNode head, int k) {
         return reverseKGroupInPlace(head, k);
     }
 
@@ -59,9 +34,9 @@ public class ReverseNodesKGroup {
         return endP;
     }
 
-    public ListNode reverseKGroupWithStack(ListNode head, int k) {
+    private ListNode reverseKGroupWithStack(ListNode head, int k) {
 
-        ListNode startP = head, endP = skipN(startP, k - 1), dummy = new ListNode(0, head), nextP;
+        ListNode startP = head, endP = startP.skipN(k - 1), dummy = new ListNode(0, head), nextP;
         ListNode prevP = dummy;
         while (endP != null) {
             nextP = endP.next;
@@ -71,7 +46,7 @@ public class ReverseNodesKGroup {
             prevP = startP; // the old start is now the end, should point to nextP
             // prevP.next = nextP; not needed, was connected inside the helper method
             startP = nextP;
-            endP = startP == null ? null : skipN(startP, k - 1);
+            endP = startP == null ? null : startP.skipN(k - 1);
         }
 
         return dummy.next;
@@ -102,7 +77,7 @@ public class ReverseNodesKGroup {
         return last;
     }
 
-    public ListNode reverseKGroupInPlace(ListNode head, int k) {
+    private ListNode reverseKGroupInPlace(ListNode head, int k) {
         ListNode dummy = new ListNode(0, head);
         ListNode prevP = dummy;
         do { 
