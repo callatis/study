@@ -2,20 +2,31 @@ package org.callatis.study.solutions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class ThreeSumTest {
 
-    private ThreeSum threeSum;
+    private final ThreeSum threeSum;
 
-    @Before
-    public void setUp() {
-        threeSum = new ThreeSum();
+    public ThreeSumTest(boolean optimized) {
+        this.threeSum = new ThreeSum(optimized);
+    }
+
+    @Parameters(name = "optimized={0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+                {true},
+                {false}
+        });
     }
 
     @Test
@@ -27,10 +38,10 @@ public class ThreeSumTest {
         List<List<Integer>> actual = threeSum.threeSum(nums);
         List<String> actualTriplets = normalize(actual);
 
-        List<String> expectedTriplets = new ArrayList<>(Arrays.asList(
+        List<String> expectedTriplets = normalizeStrings(new ArrayList<>(Arrays.asList(
                 "-1,-1,2",
                 "-1,0,1"
-        ));
+        )));
 
         assertEquals(expectedTriplets, actualTriplets);
     }
@@ -55,7 +66,7 @@ public class ThreeSumTest {
         List<List<Integer>> actual = threeSum.threeSum(nums);
         List<String> actualTriplets = normalize(actual);
 
-        List<String> expectedTriplets = new ArrayList<>(Arrays.asList("0,0,0"));
+        List<String> expectedTriplets = normalizeStrings(new ArrayList<>(Arrays.asList("0,0,0")));
 
         assertEquals(expectedTriplets, actualTriplets);
     }
@@ -69,17 +80,23 @@ public class ThreeSumTest {
         List<List<Integer>> actual = threeSum.threeSum(nums);
         List<String> actualTriplets = normalize(actual);
 
-        List<String> expectedTriplets = new ArrayList<>(Arrays.asList("0,0,0"));
+        List<String> expectedTriplets = normalizeStrings(new ArrayList<>(Arrays.asList("0,0,0")));
 
         assertEquals(expectedTriplets, actualTriplets);
     }
 
     private List<String> normalize(List<List<Integer>> triplets) {
-        return triplets.stream()
+        return normalizeStrings(triplets.stream()
                 .map(triplet -> triplet.stream()
                         .sorted()
                         .map(String::valueOf)
                         .collect(Collectors.joining(",")))
-                .collect(Collectors.toList());
+            .collect(Collectors.toList()));
+        }
+
+        private List<String> normalizeStrings(List<String> values) {
+        return values.stream()
+            .sorted()
+            .collect(Collectors.toList());
     }
 }

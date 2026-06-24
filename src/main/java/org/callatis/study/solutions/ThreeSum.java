@@ -8,8 +8,18 @@ import java.util.Set;
 
 public class ThreeSum {
 
+    private final boolean optimized;
+
+    /* package */ ThreeSum() {
+        this(true);
+    }
+
+    /* package */ ThreeSum(boolean optimized) {
+        this.optimized = optimized;
+    }
+
     public List<List<Integer>> threeSum(int[] nums) {
-        return threeSumOptimized(nums);
+        return optimized ? threeSumOptimized(nums) : threeSumHashSet(nums);
     }
 
     public List<List<Integer>> threeSumHashSet(int[] nums) {
