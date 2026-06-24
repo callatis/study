@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import org.callatis.study.utils.Pair;
+
 public class ThreeSumClosest {
 
     private final String implementation;
@@ -46,16 +48,18 @@ public class ThreeSumClosest {
         return minSum;
     }
 
-    private NavigableMap<Integer, List<IntPair>> buildTwoSumMap(int[] nums) {
+    private NavigableMap<Integer, List<Pair<Integer>>> buildTwoSumMap(int[] nums) {
         // build a navigable map of the sum of any 2 different indices to their pair
         // should not have the diagonal [i, i], since it's not an allowed combination
         // O(n^2 * log(n))
-        NavigableMap<Integer, List<IntPair>> intPairMap = new TreeMap<>();
+        NavigableMap<Integer, List<Pair<Integer>>> intPairMap = new TreeMap<>();
         for (int i = 0; i < nums.length - 1; i++) {
             for (int j = i + 1; j < nums.length; j++) {
                 int value = nums[i] + nums[j];
-                IntPair intPair = new IntPair(i, j);
-                List<IntPair> list = intPairMap.get(value);
+                Pair<Integer> intPair = new Pair<>();
+                intPair.x = i;
+                intPair.y = j;
+                List<Pair<Integer>> list = intPairMap.get(value);
                 if (list == null) { // first time we're adding a value for this key
                     list = new ArrayList<>();
                     intPairMap.put(value, list);
@@ -66,18 +70,9 @@ public class ThreeSumClosest {
         return intPairMap;
     }
 
-    private class IntPair {
-        private int i;
-        private int j;
-        private IntPair(int i, int j) {
-            this.i = i;
-            this.j = j;
-        }
-    }
-
-    private boolean intPairList(List<IntPair> intPairList, int k) {
-        for (IntPair intPair: intPairList) {
-            if (intPair.i != k && intPair.j != k) {
+    private boolean intPairList(List<Pair<Integer>> intPairList, int k) {
+        for (Pair<Integer> intPair: intPairList) {
+            if (intPair.x != k && intPair.y != k) {
                 return false;
             }
         }
@@ -85,7 +80,7 @@ public class ThreeSumClosest {
     }
 
     public int threeSumClosestPartialOptimiz(int[] nums, int target) {
-        NavigableMap<Integer, List<IntPair>> twoSumMap = buildTwoSumMap(nums); // n^2
+        NavigableMap<Integer, List<Pair<Integer>>> twoSumMap = buildTwoSumMap(nums); // n^2
         Integer maxSum  = null;
         // iterate over each index - O(n)
         for (int k = 0; k < nums.length; k++) { // n * 
@@ -99,7 +94,7 @@ public class ThreeSumClosest {
         return maxSum;
     }
 
-    private Integer getClosestValue(NavigableMap<Integer, List<IntPair>> twoSumMap, int k, int deltaValue) {
+    private Integer getClosestValue(NavigableMap<Integer, List<Pair<Integer>>> twoSumMap, int k, int deltaValue) {
         // identify the closest 2 values to the current complement to target;
         // i.e. the 3-sum is the closest to target
         // Note: if k is either i or j, we need to move left, resp. right. 
@@ -110,7 +105,7 @@ public class ThreeSumClosest {
         Integer upper = twoSumMap.ceilingKey(deltaValue);
         while (upper != null && (intPairList(twoSumMap.get(upper), k))) { 
             upper = twoSumMap.ceilingKey(upper + 1);
-        };
+        }
         // identify which one is the closest
         Integer mapValue;
         if (lower == null) {
