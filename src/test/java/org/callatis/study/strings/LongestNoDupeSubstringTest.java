@@ -59,11 +59,29 @@ public class LongestNoDupeSubstringTest {
     }
 
     @Test
-    public void testExample6Au() {
+    public void testExample5Au() {
         // Input: s = "au"
         // Output: 2
         int expected = 2;
 
         assertEquals(expected, longestNoDupeSubstring.lengthOfLongestSubstring("au"));
+    }
+
+    @Test
+    public void testExample6Dvdf() {
+        // Input: s = "dvdf"
+        // Output: 3
+        int expected = 3;
+
+        assertEquals(expected, longestNoDupeSubstring.lengthOfLongestSubstring("dvdf"));
+    }
+
+    @Test
+    public void testExample7Jbpnbwwd() {
+        // Input: s = "jbpnbwwd"
+        // Output: 4
+        int expected = 4;
+
+        assertEquals(expected, longestNoDupeSubstring.lengthOfLongestSubstring("jbpnbwwd"));
     }
 }

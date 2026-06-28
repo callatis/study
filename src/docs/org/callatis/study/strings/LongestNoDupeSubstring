@@ -28,10 +28,20 @@ Example 5:
     Output: 1
     Explanation: The answer is " ", with the length of 1.
 
-Example 5: 
+Example 6: 
     Input: s = "au"
     Output: 2
     Explanation: The answer is "au", with the length of 2.
+
+Example 7: 
+    Input: s = "dvdf"
+    Output: 3
+    Explanation: "vdf"
+
+Example 8: 
+    Input: s = "jbpnbwwd"
+    Expected: 4
+    Explanation: "jbpn" or "pnbw" fit the bill, both of length 4. 
 
 
 Constraints:
