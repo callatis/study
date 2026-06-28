@@ -1,16 +1,29 @@
 package org.callatis.study.strings;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.Arrays;
+import java.util.Collection;
 
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+@RunWith(Parameterized.class)
 public class LongestNoDupeSubstringTest {
 
-    private LongestNoDupeSubstring longestNoDupeSubstring;
+    private final LongestNoDupeSubstring longestNoDupeSubstring;
 
-    @Before
-    public void setUp() {
-        longestNoDupeSubstring = new LongestNoDupeSubstring();
+    public LongestNoDupeSubstringTest(boolean optimized) {
+        this.longestNoDupeSubstring = new LongestNoDupeSubstring(optimized);
+    }
+
+    @Parameters(name = "optimized={0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+                {true},
+                {false}
+        });
     }
 
     @Test
