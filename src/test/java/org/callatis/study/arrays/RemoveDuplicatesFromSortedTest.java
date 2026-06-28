@@ -1,19 +1,30 @@
 package org.callatis.study.arrays;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class RemoveDuplicatesFromSortedTest {
 
-    private RemoveDuplicatesFromSorted solution;
+    private final RemoveDuplicatesFromSorted solution;
 
-    @Before
-    public void setUp() {
-        solution = new RemoveDuplicatesFromSorted();
+    public RemoveDuplicatesFromSortedTest(boolean useV2) {
+        solution = new RemoveDuplicatesFromSorted(useV2);
+    }
+
+    @Parameters(name = "useV2={0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+            {false},
+            {true}
+        });
     }
 
     @Test
