@@ -84,4 +84,14 @@ public class LongestNoDupeSubstringTest {
 
         assertEquals(expected, longestNoDupeSubstring.lengthOfLongestSubstring("jbpnbwwd"));
     }
+
+    @Test
+    public void testExample9Bpfbhmipx() {
+        // Input: s = "bpfbhmipx"
+        // Output: 7
+        // Explanation: "fbhmipx" (indices 2-8) has no duplicates
+        int expected = 7;
+
+        assertEquals(expected, longestNoDupeSubstring.lengthOfLongestSubstring("bpfbhmipx"));
+    }
 }

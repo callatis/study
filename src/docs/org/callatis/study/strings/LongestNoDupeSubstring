@@ -44,6 +44,11 @@ Example 8:
     Explanation: "jbpn" or "pnbw" fit the bill, both of length 4. 
 
 
+Example 9: 
+    Input: s = "bpfbhmipx"
+    Expected: 4
+    Explanation: "jbpn" or "pnbw" fit the bill, both of length 4. 
+
 Constraints:
 
     0 <= s.length <= 5 * 104
