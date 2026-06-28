@@ -50,29 +50,30 @@ public class LongestNoDupeSubstring {
     private int lengthOfLongestSubstringOptimized(String s) {
         if (s.length() <= 1) return s.length();
         int i = 0, len = s.length(), start = 0, result = 0; // len = 
-        Map<Character, Integer> map = new HashMap<>();
+        int[] char2Idx = new int[128];
         // set = []
         while (i < len) { // i = 
             for (int end = i; end < len; end++) { // end = 
-                char c = s.charAt(end); // c = b
-                if (map.containsKey(c)) { // ??
+                char cc = s.charAt(end); // c = 
+                int c = (int) cc;
+                if (char2Idx[c] > 0) { // ??
                     // stop
                     // check if we found a larger substring
                     result = Math.max(result, end - start); // result = 
                     // find the index we found the previous occurrence
-                    int former = map.get(c); // former = 
+                    int former = char2Idx[c] - 1; // former = 
                     // clear the map elements up until jj
                     for (int k = start; k < former; k++) { // k = 
-                        map.remove(s.charAt(k)); // set: 
+                        char2Idx[(int) s.charAt(k)] = 0; // set: 
                     }
                     start = former + 1; // start = 
                     // replace the position with the current one
-                    map.put(c, end); // set: []
+                    char2Idx[c] = end + 1; // set: []
                     // start next iter from right after where the j char appeared before
                     i = end + 1; // i = 
                     break;
                 } else {
-                    map.put(c, end); // set: []
+                    char2Idx[c] = end + 1; // set: []
                 }
                 // if we reached the end of the string
                 if (end == len - 1) { // ??
