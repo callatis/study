@@ -49,34 +49,34 @@ public class LongestNoDupeSubstring {
 
     private int lengthOfLongestSubstringOptimized(String s) {
         if (s.length() <= 1) return s.length();
-        int i = 0, len = s.length(), start = 0, result = 0; // len = 9
+        int i = 0, len = s.length(), start = 0, result = 0; // len = 
         Map<Character, Integer> map = new HashMap<>();
         // set = []
-        while (i < len) { // i = 0
-            for (int j = i; j < len; j++) { // j = 3
-                char c = s.charAt(j); // c = b
-                if (map.containsKey(c)) { // yes
+        while (i < len) { // i = 
+            for (int end = i; end < len; end++) { // end = 
+                char c = s.charAt(end); // c = b
+                if (map.containsKey(c)) { // ??
                     // stop
                     // check if we found a larger substring
-                    result = Math.max(result, map.size()); // result = 3
+                    result = Math.max(result, end - start); // result = 
                     // find the index we found the previous occurrence
-                    int jj = map.get(c); // jj = 0
+                    int former = map.get(c); // former = 
                     // clear the map elements up until jj
-                    for (int k = start; k < jj; k++) { // k = 
+                    for (int k = start; k < former; k++) { // k = 
                         map.remove(s.charAt(k)); // set: 
                     }
-                    start = jj + 1; // start = 1
+                    start = former + 1; // start = 
                     // replace the position with the current one
-                    map.put(c, j); // set: [b = 3, p = 1, f = 2]
+                    map.put(c, end); // set: []
                     // start next iter from right after where the j char appeared before
-                    i = j + 1; // i = 4
+                    i = end + 1; // i = 
                     break;
                 } else {
-                    map.put(c, j); // set: [b = 3, p = 1, f = 2]
+                    map.put(c, end); // set: []
                 }
                 // if we reached the end of the string
-                if (j == len - 1) { // no
-                    result = Math.max(result, j - i + 1);
+                if (end == len - 1) { // ??
+                    result = Math.max(result, end - start + 1);
                     break;
                 }
             }
