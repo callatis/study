@@ -7,11 +7,11 @@ import org.junit.Test;
 
 public class LongestPalindromeSubstringTest {
 
-    private LongesetPalindromeSubstring longestPalindromeSubstring;
+    private LongestPalindromeSubstring longestPalindromeSubstring;
 
     @Before
     public void setUp() {
-        longestPalindromeSubstring = new LongesetPalindromeSubstring();
+        longestPalindromeSubstring = new LongestPalindromeSubstring();
     }
 
     @Test

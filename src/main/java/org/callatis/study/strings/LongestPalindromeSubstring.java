@@ -1,10 +1,33 @@
 package org.callatis.study.strings;
 
-public class LongesetPalindromeSubstring {
+public class LongestPalindromeSubstring {
 
-    private String checkPalindrome(String s, int left, int right) {
+    class IntPair {
+        
+        int left;
+        int right;
+
+        IntPair(int left, int right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        public int length() {
+            return right - left + 1;
+        }
+    }
+
+    private String substring(String s, IntPair pair) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = pair.left; i <= pair.right; i++) {
+            sb.append(s.charAt(i));
+        }
+        return sb.toString();
+    }
+
+    private IntPair checkPalindrome(String s, int left, int right) {
         int len = s.length();
-        while (left <= right && left >= 0 && right < len) {
+        while (left >= 0 && right < len) {
             if (s.charAt(left) == s.charAt(right)) {
                 left--;
                 right++;
@@ -12,21 +35,15 @@ public class LongesetPalindromeSubstring {
                 break;
             }
         }
-        left++;
-        right--;
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = left; i <= right; i++) {
-            sb.append(s.charAt(i));
-        }
-        return sb.toString();
+        return new IntPair(left + 1, right - 1);
     }
 
     public String longestPalindrome(String s) { // s = "ccc"
         if (s.length() <= 1) return s;
         int end = 1;
         int len = s.length();
-        String longestPalindrome = s.substring(0, 1);
+        IntPair longestPalindrome = new IntPair(0, 0);
         while (end < len) { // end = 1
             int c = s.charAt(end);
             int start = -1;
@@ -39,7 +56,7 @@ public class LongesetPalindromeSubstring {
                 start = end - 2;
             }
             if (start >= 0) {
-                String palindrome = checkPalindrome(s, start, end);
+                IntPair palindrome = checkPalindrome(s, start, end);
                 if (longestPalindrome.length() < palindrome.length()) {
                     longestPalindrome = palindrome;
                 }
@@ -47,7 +64,6 @@ public class LongesetPalindromeSubstring {
             end++;
         }
 
-        return longestPalindrome;
+        return substring(s, longestPalindrome);
     }
-    
 }
