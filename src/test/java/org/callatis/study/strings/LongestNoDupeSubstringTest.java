@@ -14,15 +14,16 @@ public class LongestNoDupeSubstringTest {
 
     private final LongestNoDupeSubstring longestNoDupeSubstring;
 
-    public LongestNoDupeSubstringTest(boolean optimized) {
-        this.longestNoDupeSubstring = new LongestNoDupeSubstring(optimized);
+    public LongestNoDupeSubstringTest(int implementation) {
+        this.longestNoDupeSubstring = new LongestNoDupeSubstring(implementation);
     }
 
-    @Parameters(name = "optimized={0}")
+    @Parameters(name = "implementation={0}")
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][] {
-                {true},
-                {false}
+                {0},
+                {1},
+                {2}
         });
     }
 

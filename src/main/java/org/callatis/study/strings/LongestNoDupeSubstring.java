@@ -5,17 +5,20 @@ import java.util.Map;
 
 public class LongestNoDupeSubstring {
 
-    private final boolean optimized;
+    private final int implementation;
 
-    public LongestNoDupeSubstring(boolean optimized) {
-        this.optimized = optimized;
+    public LongestNoDupeSubstring(int implementation) {
+        this.implementation = implementation;
     }
 
     public int lengthOfLongestSubstring(String s) { // s = 
-        if (optimized) {
+        if (implementation == 0) {
+            return lengthOfLongestSubstringOriginal(s);
+        }
+        if (implementation == 1) {
             return lengthOfLongestSubstringOptimized(s);
         }
-        return lengthOfLongestSubstringOriginal(s);
+        return lengthOfLongestSubstringSingleIter(s);
     }
 
     private int lengthOfLongestSubstringOriginal(String s) { // s = 
@@ -80,6 +83,40 @@ public class LongestNoDupeSubstring {
                     result = Math.max(result, end - start + 1);
                     break;
                 }
+            }
+        }
+
+        return result;
+    }
+
+    public int lengthOfLongestSubstringSingleIter(String s) { // s = 
+        if (s.length() <= 1) return s.length();
+        int len = s.length(), start = 0, end = 0;
+        int result = 0; // len = 
+        int[] char2Idx = new int[128];
+        // set = []
+        while (end < len) { // i = 
+            char cc = s.charAt(end); // cc = 
+            int c = (int) cc; // c = 
+            if (char2Idx[c] > 0) { // ??
+                // stop
+                // check if we found a larger substring
+                result = Math.max(result, end - start); // result = 
+                // find the index we found the previous occurrence
+                int former = char2Idx[c] - 1; // former = 
+                // clear the map elements up until jj
+                for (int k = start; k < former; k++) { // k = 
+                    char2Idx[(int) s.charAt(k)] = 0; // set: 
+                }
+                start = former + 1; // start = 
+                // replace the position with the current one
+                char2Idx[c] = ++end; // set: []
+            } else {
+                char2Idx[c] = ++end; // set: []
+            }
+            // if we reached the end of the string
+            if (end == len) { // ??
+                result = Math.max(result, end - start);
             }
         }
 
