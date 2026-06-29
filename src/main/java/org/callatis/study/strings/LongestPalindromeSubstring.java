@@ -17,14 +17,6 @@ public class LongestPalindromeSubstring {
         }
     }
 
-    private String substring(String s, IntPair pair) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = pair.left; i <= pair.right; i++) {
-            sb.append(s.charAt(i));
-        }
-        return sb.toString();
-    }
-
     private IntPair checkPalindrome(String s, int left, int right) {
         int len = s.length();
         while (left >= 0 && right < len) {
@@ -64,6 +56,6 @@ public class LongestPalindromeSubstring {
             end++;
         }
 
-        return substring(s, longestPalindrome);
+        return s.substring(longestPalindrome.left, longestPalindrome.right - longestPalindrome.left + 1);
     }
 }
