@@ -98,16 +98,12 @@ public class LongestNoDupeSubstring {
         while (end < len) { // i = 
             char cc = s.charAt(end); // cc = 
             int c = (int) cc; // c = 
-            if (char2Idx[c] > 0) { // ??
+            if (char2Idx[c] > start) { // ??
                 // stop
                 // check if we found a larger substring
                 result = Math.max(result, end - start); // result = 
                 // find the index we found the previous occurrence
                 int former = char2Idx[c] - 1; // former = 
-                // clear the map elements up until jj
-                for (int k = start; k < former; k++) { // k = 
-                    char2Idx[(int) s.charAt(k)] = 0; // set: 
-                }
                 start = former + 1; // start = 
                 // replace the position with the current one
                 char2Idx[c] = ++end; // set: []
