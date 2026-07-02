@@ -114,7 +114,8 @@ public class ProducerConsumerTest {
         }
 
         if (threadError.get() != null) {
-            fail("Worker failed for " + implementationType + " in scenario " + scenarioName + ": " + threadError.get());
+            Throwable thr = threadError.get();
+            throw new AssertionError("Worker failed for " + implementationType + " in scenario " + scenarioName, thr);
         }
 
         assertEquals("Wrong number of items left for " + implementationType + " in scenario " + scenarioName, 0, pc.getQSize());
@@ -128,22 +129,18 @@ public class ProducerConsumerTest {
         throw new IllegalArgumentException("Unsupported implementation type: " + implementationType);
     }
 
-    @SuppressWarnings("CallToPrintStackTrace")
     private static void runProducer(Producer producer, AtomicReference<Throwable> threadError) {
         try {
             producer.produce();
         } catch (InterruptedException t) {
-            t.printStackTrace();
             threadError.compareAndSet(null, t);
         }
     }
 
-    @SuppressWarnings("CallToPrintStackTrace")
     private static void runConsumer(Consumer consumer, AtomicReference<Throwable> threadError) {
         try {
             consumer.consume();
         } catch (InterruptedException t) {
-            t.printStackTrace();
             threadError.compareAndSet(null, t);
         }
     }
