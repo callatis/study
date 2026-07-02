@@ -19,10 +19,7 @@ public class LongestPalindromeSubstring {
             }
         }
 
-        Pair<Integer> result = new Pair<>();
-        result.x = left + 1;
-        result.y = right - 1;
-        return result;
+        return new Pair<>(left + 1, right - 1);
     }
 
     public String longestPalindrome(String s) { // s = "ccc"
