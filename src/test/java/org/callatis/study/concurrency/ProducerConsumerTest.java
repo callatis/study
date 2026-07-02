@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.callatis.study.concurrency.ProducerConsumer.Consumer;
-import org.callatis.study.concurrency.ProducerConsumer.Producer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -18,6 +16,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class ProducerConsumerTest {
 
+    private final String implementationType;
     private final String scenarioName;
     private final int producerCount;
     private final int producerItems;
@@ -27,6 +26,7 @@ public class ProducerConsumerTest {
     private final int consumerDelayMs;
 
     public ProducerConsumerTest(
+            String implementationType,
             String scenarioName,
             int producerCount,
             int producerItems,
@@ -34,6 +34,7 @@ public class ProducerConsumerTest {
             int consumerCount,
             int consumerItems,
             int consumerDelayMs) {
+        this.implementationType = implementationType;
         this.scenarioName = scenarioName;
         this.producerCount = producerCount;
         this.producerItems = producerItems;
@@ -43,53 +44,53 @@ public class ProducerConsumerTest {
         this.consumerDelayMs = consumerDelayMs;
     }
 
-    @Parameters(name = "{0}")
+    @Parameters(name = "{0}-{1}")
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][] {
             // From Producer-Consumer.md examples.
-            {"test1x10x0v1x10x0", 1, 10, 0, 1, 10, 0},
-            {"test1x10x1000v1x10x1000", 1, 10, 1000, 1, 10, 1000},
-            {"test2x10x1000v1x20x0", 2, 10, 1000, 1, 20, 0},
-            {"test1x20x0v2x10x1000", 1, 20, 0, 2, 10, 1000},
-            {"test4x5x1000v2x10x500", 4, 5, 1000, 2, 10, 500},
-            {"test3x20x0v6x10x0", 3, 20, 0, 6, 10, 0},
-            {"test6x10x0v3x20x2000", 6, 10, 0, 3, 20, 2000},
-            {"test3x20x2000v6x10x0", 3, 20, 2000, 6, 10, 0},
-            {"test8x25x100v5x40x100", 8, 25, 100, 5, 40, 100},
-            {"test10x10x0v10x10x0", 10, 10, 0, 10, 10, 0},
-            {"test2x100x0v1x200x50", 2, 100, 0, 1, 200, 50},
-            {"test1x200x50v4x50x0", 1, 200, 50, 4, 50, 0},
-            {"test5x40x250v4x50x750", 5, 40, 250, 4, 50, 750},
-            {"test12x5x0v3x20x1500", 12, 5, 0, 3, 20, 1500},
-            {"test3x20x1500v12x5x0", 3, 20, 1500, 12, 5, 0},
-            {"test16x50x10v20x40x10", 16, 50, 10, 20, 40, 10}
+            {"BasicProducerConsumer", "test1x10x0v1x10x0", 1, 10, 0, 1, 10, 0},
+            {"BasicProducerConsumer", "test1x10x1000v1x10x1000", 1, 10, 1000, 1, 10, 1000},
+            {"BasicProducerConsumer", "test2x10x1000v1x20x0", 2, 10, 1000, 1, 20, 0},
+            {"BasicProducerConsumer", "test1x20x0v2x10x1000", 1, 20, 0, 2, 10, 1000},
+            {"BasicProducerConsumer", "test4x5x1000v2x10x500", 4, 5, 1000, 2, 10, 500},
+            {"BasicProducerConsumer", "test3x20x0v6x10x0", 3, 20, 0, 6, 10, 0},
+            {"BasicProducerConsumer", "test6x10x0v3x20x2000", 6, 10, 0, 3, 20, 2000},
+            {"BasicProducerConsumer", "test3x20x2000v6x10x0", 3, 20, 2000, 6, 10, 0},
+            {"BasicProducerConsumer", "test8x25x100v5x40x100", 8, 25, 100, 5, 40, 100},
+            {"BasicProducerConsumer", "test10x10x0v10x10x0", 10, 10, 0, 10, 10, 0},
+            {"BasicProducerConsumer", "test2x100x0v1x200x50", 2, 100, 0, 1, 200, 50},
+            {"BasicProducerConsumer", "test1x200x50v4x50x0", 1, 200, 50, 4, 50, 0},
+            {"BasicProducerConsumer", "test5x40x250v4x50x750", 5, 40, 250, 4, 50, 750},
+            {"BasicProducerConsumer", "test12x5x0v3x20x1500", 12, 5, 0, 3, 20, 1500},
+            {"BasicProducerConsumer", "test3x20x1500v12x5x0", 3, 20, 1500, 12, 5, 0},
+            {"BasicProducerConsumer", "test16x50x10v20x40x10", 16, 50, 10, 20, 40, 10}
         });
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRejectsZeroCapacity() {
-        ProducerConsumer<Integer> pc = new ProducerConsumer<>(0);
+        ProducerConsumer<Integer> pc = createProducerConsumer(0);
 
         fail("Should have thrown but it created " + pc);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorRejectsNegativeCapacity() {
-        ProducerConsumer<Integer> pc = new ProducerConsumer<>(-1);
+        ProducerConsumer<Integer> pc = createProducerConsumer(-1);
 
         fail("Should have thrown but it created " + pc);
     }
 
     @Test
     public void testConstructorStoresCapacity() {
-        ProducerConsumer<String> pc = new ProducerConsumer<>(3);
+        ProducerConsumer<String> pc = createProducerConsumer(3);
 
         assertEquals(3, pc.getCapacity());
     }
 
     @Test
     public void testProducerConsumerScenario() throws InterruptedException {
-        ProducerConsumer<Integer> pc = new ProducerConsumer<>(Math.max(1, producerItems * producerCount));
+        ProducerConsumer<Integer> pc = createProducerConsumer(Math.max(1, producerItems * producerCount));
         AtomicReference<Throwable> threadError = new AtomicReference<>();
         List<Thread> threads = new ArrayList<>();
 
@@ -113,10 +114,18 @@ public class ProducerConsumerTest {
         }
 
         if (threadError.get() != null) {
-            fail("Worker failed in scenario " + scenarioName + ": " + threadError.get());
+            fail("Worker failed for " + implementationType + " in scenario " + scenarioName + ": " + threadError.get());
         }
 
-        assertEquals("Wrong number of items left for scenario " + scenarioName, 0, pc.getQSize());
+        assertEquals("Wrong number of items left for " + implementationType + " in scenario " + scenarioName, 0, pc.getQSize());
+    }
+
+    private <T> ProducerConsumer<T> createProducerConsumer(int capacity) {
+        if ("BasicProducerConsumer".equals(implementationType)) {
+            return new BasicProducerConsumer<>(capacity);
+        }
+
+        throw new IllegalArgumentException("Unsupported implementation type: " + implementationType);
     }
 
     @SuppressWarnings("CallToPrintStackTrace")
