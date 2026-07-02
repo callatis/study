@@ -1,23 +1,14 @@
 package org.callatis.study.strings;
 
+import org.callatis.study.utils.Pair;
+
 public class LongestPalindromeSubstring {
 
-    class IntPair {
-        
-        int left;
-        int right;
-
-        IntPair(int left, int right) {
-            this.left = left;
-            this.right = right;
-        }
-
-        public int length() {
-            return right - left + 1;
-        }
+    private int length(Pair<Integer> pair) {
+        return pair.y - pair.x + 1;
     }
 
-    private IntPair checkPalindrome(String s, int left, int right) {
+    private Pair<Integer> checkPalindrome(String s, int left, int right) {
         int len = s.length();
         while (left >= 0 && right < len) {
             if (s.charAt(left) == s.charAt(right)) {
@@ -28,14 +19,19 @@ public class LongestPalindromeSubstring {
             }
         }
 
-        return new IntPair(left + 1, right - 1);
+        Pair<Integer> result = new Pair<>();
+        result.x = left + 1;
+        result.y = right - 1;
+        return result;
     }
 
     public String longestPalindrome(String s) { // s = "ccc"
         if (s.length() <= 1) return s;
         int end = 1;
         int len = s.length();
-        IntPair longestPalindrome = new IntPair(0, 0);
+        Pair<Integer> longestPalindrome = new Pair<>();
+        longestPalindrome.x = 0;
+        longestPalindrome.y = 0;
         while (end < len) { // end = 1
             int c = s.charAt(end);
             int start = -1;
@@ -48,14 +44,14 @@ public class LongestPalindromeSubstring {
                 start = end - 2;
             }
             if (start >= 0) {
-                IntPair palindrome = checkPalindrome(s, start, end);
-                if (longestPalindrome.length() < palindrome.length()) {
+                Pair<Integer> palindrome = checkPalindrome(s, start, end);
+                if (length(longestPalindrome) < length(palindrome)) {
                     longestPalindrome = palindrome;
                 }
             }
             end++;
         }
 
-        return s.substring(longestPalindrome.left, longestPalindrome.right - longestPalindrome.left + 1);
+        return s.substring(longestPalindrome.x, longestPalindrome.y + 1);
     }
 }
