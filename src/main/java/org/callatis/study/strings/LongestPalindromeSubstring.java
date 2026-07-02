@@ -29,9 +29,7 @@ public class LongestPalindromeSubstring {
         if (s.length() <= 1) return s;
         int end = 1;
         int len = s.length();
-        Pair<Integer> longestPalindrome = new Pair<>();
-        longestPalindrome.x = 0;
-        longestPalindrome.y = 0;
+        Pair<Integer> longestPalindrome = new Pair<>(0, 0);
         while (end < len) { // end = 1
             int c = s.charAt(end);
             int start = -1;

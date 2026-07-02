@@ -8,4 +8,13 @@ package org.callatis.study.utils;
  * @param <T> type of both pair elements.
  */
 public class Pair<T> extends AuPair<T, T> {
+
+    public Pair(T x, T y) {
+        super(x, y);
+    }
+
+    public Pair() {
+        super();
+    }
+
 }
