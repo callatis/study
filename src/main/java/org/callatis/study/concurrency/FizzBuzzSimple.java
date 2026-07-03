@@ -2,17 +2,18 @@ package org.callatis.study.concurrency;
 
 import java.util.function.IntConsumer;
 
-public class FizzBuzzMultithreaded {
+public class FizzBuzzSimple implements FizzBuzz {
 
     private final int n;
 
     private int k = 1;
 
-    public FizzBuzzMultithreaded(int n) {
+    public FizzBuzzSimple(int n) {
         this.n = n;
     }
 
     // printFizz.run() outputs "fizz".
+    @Override
     public void fizz(Runnable printFizz) throws InterruptedException {
         while (true) {
             synchronized (this) {
@@ -24,7 +25,7 @@ public class FizzBuzzMultithreaded {
                     System.out.println("---- Fizz DONE! " + this.k + " > " + this.n);
                     notifyAll();
                     break;
-                } 
+                }
                 System.out.println("FIZZ " + this.k);
                 printFizz.run();
                 this.k++;
@@ -34,6 +35,7 @@ public class FizzBuzzMultithreaded {
     }
 
     // printBuzz.run() outputs "buzz".
+    @Override
     public void buzz(Runnable printBuzz) throws InterruptedException {
         while (true) {
             synchronized (this) {
@@ -45,7 +47,7 @@ public class FizzBuzzMultithreaded {
                     System.out.println("---- Buzz DONE! " + this.k + " > " + this.n);
                     notifyAll();
                     break;
-                } 
+                }
                 System.out.println("BUZZ " + this.k);
                 printBuzz.run();
                 this.k++;
@@ -55,6 +57,7 @@ public class FizzBuzzMultithreaded {
     }
 
     // printFizzBuzz.run() outputs "fizzbuzz".
+    @Override
     public void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException {
         while (true) {
             synchronized (this) {
@@ -76,6 +79,7 @@ public class FizzBuzzMultithreaded {
     }
 
     // printNumber.accept(x) outputs "x", where x is an integer.
+    @Override
     public void number(IntConsumer printNumber) throws InterruptedException {
         while (true) {
             synchronized (this) {
@@ -87,12 +91,11 @@ public class FizzBuzzMultithreaded {
                     System.out.println("---- Number DONE! " + this.k + " > " + this.n);
                     notifyAll();
                     break;
-                } 
+                }
                 System.out.println("ACCEPT " + this.k);
                 printNumber.accept(this.k++);
                 notifyAll();
             }
         }
     }
-
 }

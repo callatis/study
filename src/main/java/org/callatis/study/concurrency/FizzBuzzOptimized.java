@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.IntConsumer;
 
-public class FizzBuzzOptimized {
+public class FizzBuzzOptimized implements FizzBuzz {
 
     public FizzBuzzOptimized(int n) {
         this.n = n;
@@ -21,6 +21,7 @@ public class FizzBuzzOptimized {
     private final Condition intCond = lock.newCondition();
 
     // printFizz.run() outputs "fizz".
+    @Override
     public void fizz(Runnable printFizz) throws InterruptedException {
         while (true) {
             this.lock.lock();
@@ -52,6 +53,7 @@ public class FizzBuzzOptimized {
     }
 
     // printBuzz.run() outputs "buzz".
+    @Override
     public void buzz(Runnable printBuzz) throws InterruptedException {
         while (true) {
             this.lock.lock();
@@ -83,6 +85,7 @@ public class FizzBuzzOptimized {
     }
 
     // printFizzBuzz.run() outputs "fizzbuzz".
+    @Override
     public void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException {
         while (true) {
             this.lock.lock();
@@ -112,6 +115,7 @@ public class FizzBuzzOptimized {
     }
 
     // printNumber.accept(x) outputs "x", where x is an integer.
+    @Override
     public void number(IntConsumer printNumber) throws InterruptedException {
         while (true) {
             this.lock.lock();
