@@ -2,15 +2,15 @@ package org.callatis.study.concurrency;
 
 public class H2OSimple {
 
+    public H2OSimple() {
+        
+    }
+
     private int h = 0, o = 0;
 
     private String getState() {
         return "H" + this.h + "O" + this.o;
-    }
-
-    public H2OSimple() {
-        
-    }
+    }    
 
     public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
         
@@ -52,7 +52,6 @@ public class H2OSimple {
             
             System.out.println(thrName + " yielding at " + getState());
             // yield control and wake up someone else
-            notifyAll(); // dies and notifies one H thread
             notifyAll(); // dies and notifies a second H thread
         }
     }

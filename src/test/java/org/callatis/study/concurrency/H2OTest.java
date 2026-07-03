@@ -27,7 +27,7 @@ public class H2OTest {
 
     @Parameters(name = "{0}-water={1}")
     public static Collection<Object[]> parameters() {
-        String[] implementations = new String[] {"H2OConditions", "H2OOriginal", "H2OSemaphores"/* , "H2OSimple"*/};
+        String[] implementations = new String[] {"H2OConditions", "H2OOriginal", "H2OSemaphores", "H2OSimple"};
         String[] waters = new String[] {
             // From H2O.md examples.
             "OOHHHH",
