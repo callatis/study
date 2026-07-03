@@ -1,14 +1,15 @@
 # LeetCode Concurrency Problems with Difficulty:
-| Problem ID | Title | Difficulty |
-| --- | --- | --- |
-| 1114 | Print in Order | Easy |
-| 1115 | Print FooBar Alternately | Medium |
-| 1116 | Print Zero Even Odd | Medium |
-| 1117 | Building H2O | Medium |
-| 1188 | Design Bounded Blocking Queue | Medium |
-| 1195 | Fizz Buzz Multithreaded | Medium |
-| 1242 | Web Crawler Multithreaded | Medium |
-| 1279 | Traffic Light Controlled Intersection | Medium |
+| Problem ID | Title | Difficulty | Done |
+| --- | --- | --- | --- |
+| 1114 | Print in Order | Easy | X |
+| 1115 | Print FooBar Alternately | Medium | X |
+| 1116 | Print Zero Even Odd | Medium | X |
+| 1117 | Building H2O | Medium | X |
+| 1188 | Design Bounded Blocking Queue | Medium | X |
+| 1195 | Fizz Buzz Multithreaded | Medium | |
+| 1226 | The Dining Philosophers | Medium | |
+| 1242 | Web Crawler Multithreaded | Medium | |
+| 1279 | Traffic Light Controlled Intersection | Medium | |
 
 # Producer-Consumer Problem:
 
