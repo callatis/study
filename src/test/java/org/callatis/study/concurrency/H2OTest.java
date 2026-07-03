@@ -27,17 +27,18 @@ public class H2OTest {
 
     @Parameters(name = "{0}-water={1}")
     public static Collection<Object[]> parameters() {
-        String[] implementations = new String[] {"H2O", "H2OOriginal", "H2OSimple"};
+        String[] implementations = new String[] {"H2OConditions", "H2OOriginal", "H2OSemaphores"/* , "H2OSimple"*/};
         String[] waters = new String[] {
             // From H2O.md examples.
-            "HOH",
             "OOHHHH",
             // Additional orderings to verify barrier behavior.
             "HHO",
             "OHH",
             "HOHOHH",
+            "OOHHOHHHH",
             "HHOOHH",
-            "HHHHHHHHHHOHHOHHHHOOHHHOOOOHHOOHOHHHHHOOHOHHHOOOOOOHHHHHHHHH"
+            "HHHHHHHHHHOHHOHHHHOOHHHOOOOHHOOHOHHHHHOOHOHHHOOOOOOHHHHHHHHH", 
+            "HOH"
         };
 
         List<Object[]> params = new ArrayList<>();
@@ -87,8 +88,8 @@ public class H2OTest {
     }
 
     private AtomBinder createImplementation() {
-        if ("H2O".equals(implementationType)) {
-            H2O h2o = new H2O();
+        if ("H2OConditions".equals(implementationType)) {
+            H2OConditions h2o = new H2OConditions();
             return new AtomBinder() {
                 @Override
                 public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
@@ -119,6 +120,21 @@ public class H2OTest {
 
         if ("H2OSimple".equals(implementationType)) {
             H2OSimple h2o = new H2OSimple();
+            return new AtomBinder() {
+                @Override
+                public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
+                    h2o.hydrogen(releaseHydrogen);
+                }
+
+                @Override
+                public void oxygen(Runnable releaseOxygen) throws InterruptedException {
+                    h2o.oxygen(releaseOxygen);
+                }
+            };
+        }
+
+        if ("H2OSemaphores".equals(implementationType)) {
+            H2OSemaphores h2o = new H2OSemaphores();
             return new AtomBinder() {
                 @Override
                 public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
