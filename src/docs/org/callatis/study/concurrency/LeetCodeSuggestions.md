@@ -7,6 +7,7 @@
 | 1117 | Building H2O | Medium |
 | 1188 | Design Bounded Blocking Queue | Medium |
 | 1195 | Fizz Buzz Multithreaded | Medium |
+| 1242 | Web Crawler Multithreaded | Medium |
 | 1279 | Traffic Light Controlled Intersection | Medium |
 
 # Producer-Consumer Problem:
