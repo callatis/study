@@ -2,6 +2,7 @@ package org.callatis.study.concurrency;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -9,15 +10,34 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class BoundedBlockingQueueTest {
 
     private static final long BLOCK_CHECK_DELAY_MS = 150L;
     private static final long THREAD_JOIN_TIMEOUT_MS = 2000L;
 
+    private final String implementationType;
+
+    public BoundedBlockingQueueTest(String implementationType) {
+        this.implementationType = implementationType;
+    }
+
+    @Parameters(name = "{0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+            {"simple"},
+            {"semaphores"},
+            {"conditions"}
+        });
+    }
+
     @Test
     public void testExample1FromProblemStatement() throws InterruptedException {
-        BoundedBlockingQueue queue = new BoundedBlockingQueue(2);
+        BlockingQueue queue = createQueue(2);
 
         queue.enqueue(1);
         assertEquals(1, queue.dequeue());
@@ -59,7 +79,7 @@ public class BoundedBlockingQueueTest {
 
     @Test
     public void testExample2FromProblemStatement() throws InterruptedException {
-        BoundedBlockingQueue queue = new BoundedBlockingQueue(3);
+        BlockingQueue queue = createQueue(3);
 
         queue.enqueue(1);
         queue.enqueue(0);
@@ -115,6 +135,22 @@ public class BoundedBlockingQueueTest {
         if (error != null) {
             throw new AssertionError("Worker failed for " + label, error);
         }
+    }
+
+    private BlockingQueue createQueue(int capacity) {
+        if ("simple".equals(this.implementationType)) {
+            return new SimpleBoundedBlockingQueue(capacity);
+        }
+
+        if ("semaphores".equals(this.implementationType)) {
+            return new SemaphoresBoundedBlockingQueue(capacity);
+        }
+
+        if ("conditions".equals(this.implementationType)) {
+            return new ConditionsBoundedBlockingQueue(capacity);
+        }
+
+        throw new IllegalArgumentException("Unsupported implementation: " + this.implementationType);
     }
 
     @FunctionalInterface

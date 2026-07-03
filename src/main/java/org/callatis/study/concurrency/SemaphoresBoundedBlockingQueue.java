@@ -1,46 +1,52 @@
 package org.callatis.study.concurrency;
 
-public class BoundedBlockingQueue {
+import java.util.concurrent.Semaphore;
+
+public class SemaphoresBoundedBlockingQueue implements BlockingQueue {
 
     private final int[] elems;
 
     private int n = 0, start = 0, end = 0;
 
-    public BoundedBlockingQueue(int capacity) {
+    private final Semaphore emptySem;
+
+    private final Semaphore fullSem;
+
+    public SemaphoresBoundedBlockingQueue(int capacity) {
         this.elems = new int[capacity];
+        this.emptySem = new Semaphore(capacity);
+        this.fullSem = new Semaphore(0);
     }
 
+    @Override
     public void enqueue(int element) throws InterruptedException {
+        this.emptySem.acquire();
         synchronized (this) {
-            while (this.n >= this.elems.length) {
-                wait();
-            }
-
             this.elems[end] = element;
             this.n++;
             this.end = (this.end + 1) % this.elems.length;
 
-            this.notifyAll();
+            this.fullSem.release();
         }
     }
     
+    @Override
     public int dequeue() throws InterruptedException {
+        this.fullSem.acquire();
         synchronized (this) {
-            while (this.n == 0) {
-                wait();
-            }
-
             int removed = this.elems[this.start];
             this.start = (this.start + 1) % this.elems.length;
             this.n--;
-            this.notifyAll();
-            
+            this.emptySem.release();
+
             return removed;
         }
 
     }
     
-    public int size() {
+    @Override
+    public synchronized int size() {
         return this.n;
     }
+
 }
