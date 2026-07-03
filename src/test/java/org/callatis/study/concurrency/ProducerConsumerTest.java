@@ -56,6 +56,10 @@ public class ProducerConsumerTest {
             {"FancyProducerConsumer", "test1x10x1000v1x10x1000", 1, 10, 1000, 1, 10, 1000},
             {"FancyProducerConsumer", "test2x10x1000v1x20x0", 2, 10, 1000, 1, 20, 0},
             {"FancyProducerConsumer", "test1x20x0v2x10x1000", 1, 20, 0, 2, 10, 1000},
+            {"QueuedProducerConsumer", "test1x10x0v1x10x0", 1, 10, 0, 1, 10, 0},
+            {"QueuedProducerConsumer", "test1x10x1000v1x10x1000", 1, 10, 1000, 1, 10, 1000},
+            {"QueuedProducerConsumer", "test2x10x1000v1x20x0", 2, 10, 1000, 1, 20, 0},
+            {"QueuedProducerConsumer", "test1x20x0v2x10x1000", 1, 20, 0, 2, 10, 1000},
             // {"BasicProducerConsumer", "test4x5x1000v2x10x500", 4, 5, 1000, 2, 10, 500},
             // {"BasicProducerConsumer", "test3x20x0v6x10x0", 3, 20, 0, 6, 10, 0},
             // {"BasicProducerConsumer", "test6x10x0v3x20x2000", 6, 10, 0, 3, 20, 2000},
@@ -130,6 +134,8 @@ public class ProducerConsumerTest {
             return new BasicProducerConsumer<>(capacity);
         } else if ("FancyProducerConsumer".equals(implementationType)) {
             return new FancyProducerConsumer<>(capacity);
+        } else if ("QueuedProducerConsumer".equals(implementationType)) {
+            return new QueuedProducerConsumer<>(capacity);
         }
 
         throw new IllegalArgumentException("Unsupported implementation type: " + implementationType);
