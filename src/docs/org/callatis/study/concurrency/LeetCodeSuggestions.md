@@ -6,7 +6,7 @@
 | 1116 | Print Zero Even Odd | Medium | X |
 | 1117 | Building H2O | Medium | X |
 | 1188 | Design Bounded Blocking Queue | Medium | X |
-| 1195 | Fizz Buzz Multithreaded | Medium | |
+| 1195 | Fizz Buzz Multithreaded | Medium | X |
 | 1226 | The Dining Philosophers | Medium | |
 | 1242 | Web Crawler Multithreaded | Medium | |
 | 1279 | Traffic Light Controlled Intersection | Medium | |
