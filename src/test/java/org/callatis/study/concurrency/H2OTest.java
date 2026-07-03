@@ -1,7 +1,6 @@
 package org.callatis.study.concurrency;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -18,28 +17,42 @@ public class H2OTest {
 
     private static final long THREAD_JOIN_TIMEOUT_MS = 2000L;
 
+    private final String implementationType;
     private final String water;
 
-    public H2OTest(String water) {
+    public H2OTest(String implementationType, String water) {
+        this.implementationType = implementationType;
         this.water = water;
     }
 
-    @Parameters(name = "water={0}")
+    @Parameters(name = "{0}-water={1}")
     public static Collection<Object[]> parameters() {
-        return Arrays.asList(new Object[][] {
+        String[] implementations = new String[] {"H2O", "H2OOriginal"};
+        String[] waters = new String[] {
             // From H2O.md examples.
-            {"HOH"},
-            {"OOHHHH"},
+            "HOH",
+            "OOHHHH",
             // Additional orderings to verify barrier behavior.
-            {"HHO"},
-            {"OHH"},
-            {"HHOOHH"}
-        });
+            "HHO",
+            "OHH",
+            "HOHOHH",
+            "HHOOHH",
+            "HHHHHHHHHHOHHOHHHHOOHHHOOOOHHOOHOHHHHHOOHOHHHOOOOOOHHHHHHHHH"
+        };
+
+        List<Object[]> params = new ArrayList<>();
+        for (String implementation : implementations) {
+            for (String sequence : waters) {
+                params.add(new Object[] {implementation, sequence});
+            }
+        }
+
+        return params;
     }
 
     @Test
     public void testBuildsWaterInValidMoleculeGroups() throws InterruptedException {
-        H2O h2o = new H2O();
+        AtomBinder h2o = createImplementation();
         @SuppressWarnings("java:S1149")
         StringBuffer output = new StringBuffer();
         AtomicReference<Throwable> threadError = new AtomicReference<>();
@@ -71,6 +84,40 @@ public class H2OTest {
         }
 
         assertIsValidWaterOutput(output.toString(), water.length());
+    }
+
+    private AtomBinder createImplementation() {
+        if ("H2O".equals(implementationType)) {
+            H2O h2o = new H2O();
+            return new AtomBinder() {
+                @Override
+                public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
+                    h2o.hydrogen(releaseHydrogen);
+                }
+
+                @Override
+                public void oxygen(Runnable releaseOxygen) throws InterruptedException {
+                    h2o.oxygen(releaseOxygen);
+                }
+            };
+        }
+
+        if ("H2OOriginal".equals(implementationType)) {
+            H2OOriginal h2o = new H2OOriginal();
+            return new AtomBinder() {
+                @Override
+                public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
+                    h2o.hydrogen(releaseHydrogen);
+                }
+
+                @Override
+                public void oxygen(Runnable releaseOxygen) throws InterruptedException {
+                    h2o.oxygen(releaseOxygen);
+                }
+            };
+        }
+
+        throw new IllegalArgumentException("Unsupported implementation type: " + implementationType);
     }
 
     private static void waitForCompletion(List<Thread> threads) throws InterruptedException {
@@ -119,5 +166,11 @@ public class H2OTest {
     @FunctionalInterface
     private interface ThrowingRunnable {
         void run() throws InterruptedException;
+    }
+
+    private interface AtomBinder {
+        void hydrogen(Runnable releaseHydrogen) throws InterruptedException;
+
+        void oxygen(Runnable releaseOxygen) throws InterruptedException;
     }
 }

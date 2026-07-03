@@ -1,110 +1,74 @@
 package org.callatis.study.concurrency;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class H2O {
 
     private int h = 0, o = 0;
 
-    private int hh = 0, oo = 0;
+    private final Lock lock = new ReentrantLock();
 
-    private boolean releasing = false;
+    private final Condition needsOxy = lock.newCondition();
 
-    private boolean isReadyToRelease() {
-        return this.h >= 2 && this.o > 0;
-    }
-
-    private boolean isReleased() {
-        return this.hh == 0 && this.oo == 0;
-    }
-
-    private void startReleasing() {
-        this.hh = 2;
-        this.oo = 1;
-        this.releasing = true;
-    }
+    private final Condition needsHydro = lock.newCondition();
 
     private String getState() {
         return "H" + this.h + "O" + this.o;
     }
-
 
     public H2O() {
         
     }
 
     public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
+        lock.lock();
+        try {
 
-        synchronized (this) {
-
-            int hThr = ++this.h;
-            String thrName = Thread.currentThread().getName() + ":-H" + hThr;
+            String thrName = Thread.currentThread().getName() + ":-H" + (this.h + 1);
             System.out.println(thrName + " starting");
-            while ((releasing && this.hh == 0) 
-                    || (!releasing && !isReadyToRelease())) {
-                System.out.println(thrName + " waiting for O " 
-                    + (releasing ? "release" : "input")
-                    + " at " + getState());
-                wait();
-            }
-            // either releasing or ready for it
-            if (isReadyToRelease()) { // isReadyToRelease
-                if (!releasing) {
-                    System.out.println(thrName + ": "+ getState() + " starting release");
-                    startReleasing();
-                }
+            while (this.h - 2 * this.o >= 2) {
+                System.out.println(thrName + " waiting for O at " + getState());
+                this.needsOxy.await();
             }
 
-            System.out.println(thrName + ": H");
+            System.out.println(thrName + " releases: H");
             // releaseHydrogen.run() outputs "H". Do not change or remove this line.
             releaseHydrogen.run();
-            this.h--;
-            this.hh--;
-
-            if (isReleased()) { // fully released
-                System.out.println(thrName + " done releasing; " + getState());
-                this.releasing = false;
-            }
+            this.h++;
 
             // yield control and wake up someone else
             System.out.println(thrName + " yielding at " + getState());
-            notifyAll();
+            this.needsHydro.signal();
+            // this.needsOxy.signal();
+        } finally {
+            lock.unlock();
         }
     }
 
     public void oxygen(Runnable releaseOxygen) throws InterruptedException {
+        lock.lock();
+        try { 
 
-        synchronized (this) { // Thr3
-
-            int oThr = ++this.o;
-            String thrName = Thread.currentThread().getName() + ":-O" + oThr;
+            String thrName = Thread.currentThread().getName() + ":-O" + (this.o + 1);
             System.out.println(thrName + " starting");
-            while ((releasing && this.oo == 0) || (!releasing && !isReadyToRelease())) {
-                System.out.println(thrName + " waiting for H " 
-                    + (releasing ? "release" : "input")
-                    + " at " + getState());
-                wait();
-            }
-            // releasing || (h >= 2 && o >= 1)
-            if (isReadyToRelease()) { // ready to start releasing
-                if (!releasing) {
-                    System.out.println(thrName + ": "+ getState() + " starting release");
-                    startReleasing();
-                }
+            while (this.h - 2 * this.o < 2) {
+                System.out.println(thrName + " waiting for H at " + getState());
+                this.needsHydro.await();
             }
 
-            System.out.println(thrName + ": O");
+            System.out.println(thrName + " releases: O");
             // releaseOxygen.run() outputs "O". Do not change or remove this line.
             releaseOxygen.run();
-            this.o--; // h = 2, o = true
-            this.oo--;
+            this.o++; 
             
-            if (isReleased()) { // fully released
-                System.out.println(thrName + " done releasing; " + getState());
-                this.releasing = false;
-            }
-
             System.out.println(thrName + " yielding at " + getState());
             // yield control and wake up someone else
-            notifyAll(); // dies and notifies the others
+            this.needsOxy.signal(); // dies and notifies one H thread
+            this.needsOxy.signal(); // dies and notifies a second H thread
+        } finally {
+            lock.unlock();
         }
     }
 
