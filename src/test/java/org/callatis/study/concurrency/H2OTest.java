@@ -27,7 +27,7 @@ public class H2OTest {
 
     @Parameters(name = "{0}-water={1}")
     public static Collection<Object[]> parameters() {
-        String[] implementations = new String[] {"H2O", "H2OOriginal"};
+        String[] implementations = new String[] {"H2O", "H2OOriginal", "H2OSimple"};
         String[] waters = new String[] {
             // From H2O.md examples.
             "HOH",
@@ -104,6 +104,21 @@ public class H2OTest {
 
         if ("H2OOriginal".equals(implementationType)) {
             H2OOriginal h2o = new H2OOriginal();
+            return new AtomBinder() {
+                @Override
+                public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
+                    h2o.hydrogen(releaseHydrogen);
+                }
+
+                @Override
+                public void oxygen(Runnable releaseOxygen) throws InterruptedException {
+                    h2o.oxygen(releaseOxygen);
+                }
+            };
+        }
+
+        if ("H2OSimple".equals(implementationType)) {
+            H2OSimple h2o = new H2OSimple();
             return new AtomBinder() {
                 @Override
                 public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
