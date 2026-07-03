@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -17,26 +18,36 @@ public class FizzBuzzMultithreadedTest {
 
     private static final long THREAD_JOIN_TIMEOUT_MS = 2000L;
 
+    private final String implementationName;
+    private final IntFunction<FizzBuzzApi> implementationFactory;
     private final int n;
     private final String expectedOutput;
 
-    public FizzBuzzMultithreadedTest(int n, String expectedOutput) {
+    public FizzBuzzMultithreadedTest(
+            String implementationName,
+            IntFunction<FizzBuzzApi> implementationFactory,
+            int n,
+            String expectedOutput) {
+        this.implementationName = implementationName;
+        this.implementationFactory = implementationFactory;
         this.n = n;
         this.expectedOutput = expectedOutput;
     }
 
-    @Parameters(name = "Example {0}")
+    @Parameters(name = "{0} n={2}")
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][] {
             // From Fizz Buzz Multithreaded.md examples.
-            {15, "1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz"},
-            {5, "1,2,fizz,4,buzz"}
+            {"wait-notify", createWaitNotifyFactory(), 15, "1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz"},
+            {"wait-notify", createWaitNotifyFactory(), 5, "1,2,fizz,4,buzz"},
+            {"optimized", createOptimizedFactory(), 15, "1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz"},
+            {"optimized", createOptimizedFactory(), 5, "1,2,fizz,4,buzz"}
         });
     }
 
     @Test
     public void testFizzBuzzMultithreaded() throws InterruptedException {
-        FizzBuzzMultithreaded fizzBuzz = new FizzBuzzMultithreaded(n);
+        FizzBuzzApi fizzBuzz = implementationFactory.apply(n);
         @SuppressWarnings("java:S1149")
         final StringBuffer output = new StringBuffer();
         AtomicReference<Throwable> threadError = new AtomicReference<>();
@@ -60,7 +71,7 @@ public class FizzBuzzMultithreadedTest {
 
         if (threadError.get() != null) {
             Throwable thr = threadError.get();
-            throw new AssertionError("Worker failed", thr);
+            throw new AssertionError("Worker failed for implementation=" + implementationName, thr);
         }
 
         assertEquals(expectedOutput, output.toString());
@@ -88,9 +99,63 @@ public class FizzBuzzMultithreadedTest {
     private static void runSafely(ThrowingRunnable action, AtomicReference<Throwable> threadError) {
         try {
             action.run();
-        } catch (InterruptedException t) {
+        } catch (Throwable t) {
             threadError.compareAndSet(null, t);
         }
+    }
+
+    private static IntFunction<FizzBuzzApi> createWaitNotifyFactory() {
+        return n -> {
+            final FizzBuzzMultithreaded delegate = new FizzBuzzMultithreaded(n);
+            return new FizzBuzzApi() {
+                @Override
+                public void fizz(Runnable printFizz) throws InterruptedException {
+                    delegate.fizz(printFizz);
+                }
+
+                @Override
+                public void buzz(Runnable printBuzz) throws InterruptedException {
+                    delegate.buzz(printBuzz);
+                }
+
+                @Override
+                public void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException {
+                    delegate.fizzbuzz(printFizzBuzz);
+                }
+
+                @Override
+                public void number(IntConsumer printNumber) throws InterruptedException {
+                    delegate.number(printNumber);
+                }
+            };
+        };
+    }
+
+    private static IntFunction<FizzBuzzApi> createOptimizedFactory() {
+        return n -> {
+            final FizzBuzzOptimized delegate = new FizzBuzzOptimized(n);
+            return new FizzBuzzApi() {
+                @Override
+                public void fizz(Runnable printFizz) throws InterruptedException {
+                    delegate.fizz(printFizz);
+                }
+
+                @Override
+                public void buzz(Runnable printBuzz) throws InterruptedException {
+                    delegate.buzz(printBuzz);
+                }
+
+                @Override
+                public void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException {
+                    delegate.fizzbuzz(printFizzBuzz);
+                }
+
+                @Override
+                public void number(IntConsumer printNumber) throws InterruptedException {
+                    delegate.number(printNumber);
+                }
+            };
+        };
     }
 
     private static void appendToken(StringBuffer output, String token) {
@@ -105,5 +170,15 @@ public class FizzBuzzMultithreadedTest {
     @FunctionalInterface
     private interface ThrowingRunnable {
         void run() throws InterruptedException;
+    }
+
+    private interface FizzBuzzApi {
+        void fizz(Runnable printFizz) throws InterruptedException;
+
+        void buzz(Runnable printBuzz) throws InterruptedException;
+
+        void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException;
+
+        void number(IntConsumer printNumber) throws InterruptedException;
     }
 }
