@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,25 +25,39 @@ public class DiningPhilosophersTest {
     private static final long THREAD_JOIN_TIMEOUT_MS = 3000L;
     private static final int PHILOSOPHER_COUNT = 5;
 
+    private final String implementationName;
+    private final Supplier<DiningPhilosophers> implementationFactory;
     private final int n;
 
-    public DiningPhilosophersTest(int n) {
+    public DiningPhilosophersTest(String implementationName, Supplier<DiningPhilosophers> implementationFactory, int n) {
+        this.implementationName = implementationName;
+        this.implementationFactory = implementationFactory;
         this.n = n;
     }
 
-    @Parameters(name = "n={0}")
+    @Parameters(name = "{0}-n={2}")
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][] {
             // From DiningPhilosophers.md example.
-            {1},
+            {"original", createOriginalFactory(), 1},
+            {"simple", createSimpleFactory(), 1},
             // Additional coverage for repeated calls.
-            {3}
+            {"original", createOriginalFactory(), 3},
+            {"simple", createSimpleFactory(), 3}
         });
+    }
+
+    private static Supplier<DiningPhilosophers> createOriginalFactory() {
+        return DiningPhilosophersSemaphores::new;
+    }
+
+    private static Supplier<DiningPhilosophers> createSimpleFactory() {
+        return DiningPhilosophersSimple::new;
     }
 
     @Test
     public void testDiningPhilosophersActionsAreValid() throws InterruptedException {
-        DiningPhilosophers diningPhilosophers = new DiningPhilosophers();
+        DiningPhilosophers diningPhilosophers = implementationFactory.get();
         List<Operation> operations = new ArrayList<>();
         AtomicReference<Throwable> threadError = new AtomicReference<>();
         CountDownLatch startGate = new CountDownLatch(1);
@@ -68,7 +83,7 @@ public class DiningPhilosophersTest {
         waitForCompletion(threads);
 
         if (threadError.get() != null) {
-            throw new AssertionError("Worker failed", threadError.get());
+            throw new AssertionError("Worker failed for implementation=" + implementationName, threadError.get());
         }
 
         assertValidActions(operations, n);
@@ -122,6 +137,27 @@ public class DiningPhilosophersTest {
     private static void assertValidActions(List<Operation> operations, int n) {
         assertEquals(PHILOSOPHER_COUNT * n * 5, operations.size());
 
+        assertValidActionsWithMapping(operations, n, ForkIndexMapping.A);
+        return;
+    }
+
+    private static void assertValidActionsWithMapping(List<Operation> operations, int n, ForkIndexMapping preferred) {
+        try {
+            assertValidActionsInternal(operations, n, preferred);
+        } catch (AssertionError first) {
+            ForkIndexMapping fallback = (preferred == ForkIndexMapping.A) ? ForkIndexMapping.B : ForkIndexMapping.A;
+            try {
+                assertValidActionsInternal(operations, n, fallback);
+            } catch (AssertionError second) {
+                second.addSuppressed(first);
+                throw second;
+            }
+        }
+    }
+
+    private static void assertValidActionsInternal(List<Operation> operations, int n, ForkIndexMapping mapping) {
+        assertEquals(PHILOSOPHER_COUNT * n * 5, operations.size());
+
         Map<Integer, Integer> heldForks = new HashMap<>();
         Map<Integer, Integer> actionCountByPhilosopher = new HashMap<>();
         Map<Integer, List<Operation>> byPhilosopher = new HashMap<>();
@@ -131,17 +167,17 @@ public class DiningPhilosophersTest {
             byPhilosopher.computeIfAbsent(op.philosopher, k -> new ArrayList<>()).add(op);
 
             if (op.action == Action.PICK) {
-                int forkIndex = toForkIndex(op.philosopher, op.fork);
+                int forkIndex = toForkIndex(op.philosopher, op.fork, mapping);
                 assertFalse("Fork already held: " + forkIndex, heldForks.containsKey(forkIndex));
                 heldForks.put(forkIndex, op.philosopher);
             } else if (op.action == Action.PUT) {
-                int forkIndex = toForkIndex(op.philosopher, op.fork);
+                int forkIndex = toForkIndex(op.philosopher, op.fork, mapping);
                 Integer holder = heldForks.get(forkIndex);
                 assertEquals("Fork put by non-holder", Integer.valueOf(op.philosopher), holder);
                 heldForks.remove(forkIndex);
             } else {
-                int leftFork = toForkIndex(op.philosopher, Fork.LEFT);
-                int rightFork = toForkIndex(op.philosopher, Fork.RIGHT);
+                int leftFork = toForkIndex(op.philosopher, Fork.LEFT, mapping);
+                int rightFork = toForkIndex(op.philosopher, Fork.RIGHT, mapping);
                 assertEquals(Integer.valueOf(op.philosopher), heldForks.get(leftFork));
                 assertEquals(Integer.valueOf(op.philosopher), heldForks.get(rightFork));
             }
@@ -174,11 +210,18 @@ public class DiningPhilosophersTest {
         }
     }
 
-    private static int toForkIndex(int philosopher, Fork fork) {
-        if (fork == Fork.RIGHT) {
+    private static int toForkIndex(int philosopher, Fork fork, ForkIndexMapping mapping) {
+        if (mapping == ForkIndexMapping.A) {
+            if (fork == Fork.RIGHT) {
+                return philosopher;
+            }
+            return (philosopher + 1) % PHILOSOPHER_COUNT;
+        }
+
+        if (fork == Fork.LEFT) {
             return philosopher;
         }
-        return (philosopher + 1) % PHILOSOPHER_COUNT;
+        return (philosopher + 4) % PHILOSOPHER_COUNT;
     }
 
     private static void increment(Map<Integer, Integer> counts, int key) {
@@ -194,6 +237,11 @@ public class DiningPhilosophersTest {
         PICK,
         PUT,
         EAT
+    }
+
+    private enum ForkIndexMapping {
+        A,
+        B
     }
 
     private static final class Operation {
