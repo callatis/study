@@ -39,12 +39,18 @@ public class DiningPhilosophersTest {
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][] {
             // From DiningPhilosophers.md example.
+            {"basic", createBasicFactory(), 1},
             {"original", createOriginalFactory(), 1},
             {"simple", createSimpleFactory(), 1},
             // Additional coverage for repeated calls.
+            {"basic", createBasicFactory(), 3},
             {"original", createOriginalFactory(), 3},
             {"simple", createSimpleFactory(), 3}
         });
+    }
+
+    private static Supplier<DiningPhilosophers> createBasicFactory() {
+        return DiningPhilosophersBasic::new;
     }
 
     private static Supplier<DiningPhilosophers> createOriginalFactory() {
@@ -137,27 +143,6 @@ public class DiningPhilosophersTest {
     private static void assertValidActions(List<Operation> operations, int n) {
         assertEquals(PHILOSOPHER_COUNT * n * 5, operations.size());
 
-        assertValidActionsWithMapping(operations, n, ForkIndexMapping.A);
-        return;
-    }
-
-    private static void assertValidActionsWithMapping(List<Operation> operations, int n, ForkIndexMapping preferred) {
-        try {
-            assertValidActionsInternal(operations, n, preferred);
-        } catch (AssertionError first) {
-            ForkIndexMapping fallback = (preferred == ForkIndexMapping.A) ? ForkIndexMapping.B : ForkIndexMapping.A;
-            try {
-                assertValidActionsInternal(operations, n, fallback);
-            } catch (AssertionError second) {
-                second.addSuppressed(first);
-                throw second;
-            }
-        }
-    }
-
-    private static void assertValidActionsInternal(List<Operation> operations, int n, ForkIndexMapping mapping) {
-        assertEquals(PHILOSOPHER_COUNT * n * 5, operations.size());
-
         Map<Integer, Integer> heldForks = new HashMap<>();
         Map<Integer, Integer> actionCountByPhilosopher = new HashMap<>();
         Map<Integer, List<Operation>> byPhilosopher = new HashMap<>();
@@ -167,17 +152,17 @@ public class DiningPhilosophersTest {
             byPhilosopher.computeIfAbsent(op.philosopher, k -> new ArrayList<>()).add(op);
 
             if (op.action == Action.PICK) {
-                int forkIndex = toForkIndex(op.philosopher, op.fork, mapping);
+                int forkIndex = toForkIndex(op.philosopher, op.fork);
                 assertFalse("Fork already held: " + forkIndex, heldForks.containsKey(forkIndex));
                 heldForks.put(forkIndex, op.philosopher);
             } else if (op.action == Action.PUT) {
-                int forkIndex = toForkIndex(op.philosopher, op.fork, mapping);
+                int forkIndex = toForkIndex(op.philosopher, op.fork);
                 Integer holder = heldForks.get(forkIndex);
                 assertEquals("Fork put by non-holder", Integer.valueOf(op.philosopher), holder);
                 heldForks.remove(forkIndex);
             } else {
-                int leftFork = toForkIndex(op.philosopher, Fork.LEFT, mapping);
-                int rightFork = toForkIndex(op.philosopher, Fork.RIGHT, mapping);
+                int leftFork = toForkIndex(op.philosopher, Fork.LEFT);
+                int rightFork = toForkIndex(op.philosopher, Fork.RIGHT);
                 assertEquals(Integer.valueOf(op.philosopher), heldForks.get(leftFork));
                 assertEquals(Integer.valueOf(op.philosopher), heldForks.get(rightFork));
             }
@@ -201,27 +186,24 @@ public class DiningPhilosophersTest {
             Operation fifth = operations.get(i + 4);
 
             assertEquals(Action.PICK, first.action);
+            assertEquals(Fork.LEFT, first.fork);
             assertEquals(Action.PICK, second.action);
+            assertEquals(Fork.RIGHT, second.fork);
             assertEquals(Action.EAT, third.action);
             assertEquals(Action.PUT, fourth.action);
             assertEquals(Action.PUT, fifth.action);
+            assertEquals(Fork.LEFT, fourth.fork);
+            assertEquals(Fork.RIGHT, fifth.fork);
             assertTrue(first.fork != second.fork);
             assertTrue(fourth.fork != fifth.fork);
         }
     }
 
-    private static int toForkIndex(int philosopher, Fork fork, ForkIndexMapping mapping) {
-        if (mapping == ForkIndexMapping.A) {
-            if (fork == Fork.RIGHT) {
-                return philosopher;
-            }
-            return (philosopher + 1) % PHILOSOPHER_COUNT;
-        }
-
+    private static int toForkIndex(int philosopher, Fork fork) {
         if (fork == Fork.LEFT) {
             return philosopher;
         }
-        return (philosopher + 4) % PHILOSOPHER_COUNT;
+        return (philosopher + 1) % PHILOSOPHER_COUNT;
     }
 
     private static void increment(Map<Integer, Integer> counts, int key) {
@@ -237,11 +219,6 @@ public class DiningPhilosophersTest {
         PICK,
         PUT,
         EAT
-    }
-
-    private enum ForkIndexMapping {
-        A,
-        B
     }
 
     private static final class Operation {

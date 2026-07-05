@@ -15,18 +15,6 @@ public class DiningPhilosophersSimple implements DiningPhilosophers {
         new ReentrantLock()
     };
 
-    void pickFork(int id, Runnable pick) {
-        this.locks[id].lock();
-        // System.out.println("Pick up fork " + id);
-        pick.run();
-    }
-
-    void putFork(int id, Runnable put) {
-        put.run();
-        // System.out.println("Drop fork " + id);
-        this.locks[id].unlock();
-    }
-
     @Override
     // call the run() method of any runnable to execute its code
     public void wantsToEat(int philosopher,
@@ -37,14 +25,25 @@ public class DiningPhilosophersSimple implements DiningPhilosophers {
                            Runnable putRightFork) throws InterruptedException {
         
         int leftFork = philosopher;
-        int rightFork = (philosopher + 4) % 5;
+        int rightFork = (philosopher + 1) % 5;
 
         this.totalSem.acquire();
-        pickFork(leftFork, pickLeftFork);
-        pickFork(rightFork, pickRightFork);
+        if ((philosopher & 1) == 0) {
+            this.locks[leftFork].lock();
+            this.locks[rightFork].lock();
+        } else {
+            this.locks[rightFork].lock();
+            this.locks[leftFork].lock();
+        }
+
+        pickLeftFork.run();
+        pickRightFork.run();
         eat.run();
-        putFork(rightFork, putRightFork);
-        putFork(leftFork, putLeftFork);
+        putLeftFork.run();
+        putRightFork.run();
+
+        this.locks[rightFork].unlock();
+        this.locks[leftFork].unlock();
 
         this.totalSem.release();
     }

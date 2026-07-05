@@ -31,43 +31,25 @@ public class DiningPhilosophersSemaphores implements DiningPhilosophers {
 
         this.pSems[philosopher].acquire();
         this.totalSem.acquire();
-        int fork1;
-        int fork2;
-        Runnable pickFork1;
-        Runnable pickFork2;
-        Runnable putFork1;
-        Runnable putFork2;
-        boolean isEven = (philosopher % 2 == 0);
-        if (isEven) { // even number, e.g. 0, 2, 4
-            // start with right
-            fork1 = philosopher;
-            pickFork1 = pickRightFork;
-            putFork1 = putRightFork;
-            fork2 = (philosopher + 1) % 5;
-            pickFork2 = pickLeftFork;
-            putFork2 = putLeftFork;
+        int leftFork = philosopher;
+        int rightFork = (philosopher + 1) % 5;
+
+        if ((philosopher & 1) == 0) {
+            this.sems[leftFork].acquire();
+            this.sems[rightFork].acquire();
         } else {
-            fork1 = (philosopher + 1) % 5;
-            pickFork1 = pickLeftFork;
-            putFork1 = putLeftFork;
-            fork2 = philosopher;
-            pickFork2 = pickRightFork;
-            putFork2 = putRightFork;
+            this.sems[rightFork].acquire();
+            this.sems[leftFork].acquire();
         }
-        this.sems[fork1].acquire();
-        pickFork1.run();
-        System.out.println(philosopher + " picked " + (isEven ? "right" : "left") + " fork");
-        this.sems[fork2].acquire();
-        pickFork2.run();
-        System.out.println(philosopher + " picked " + (isEven ? "left" : "right") + " fork");
+
+        pickLeftFork.run();
+        pickRightFork.run();
         eat.run();
-        System.out.println(philosopher + " ate");
-        putFork2.run();
-        System.out.println(philosopher + " dropped " + (isEven ? "left" : "right") + " fork");
-        this.sems[fork2].release();
-        putFork1.run();
-        System.out.println(philosopher + " dropped " + (isEven ? "right" : "left") + " fork");
-        this.sems[fork1].release();
+        putLeftFork.run();
+        putRightFork.run();
+
+        this.sems[rightFork].release();
+        this.sems[leftFork].release();
 
         this.totalSem.release();
         this.pSems[philosopher].release();
