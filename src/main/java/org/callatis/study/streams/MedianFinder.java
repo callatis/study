@@ -22,9 +22,9 @@ public class MedianFinder {
         }
         // rebalance
         if (this.pqL.size() + 1 < this.pqR.size()) { // 2+ too right
-            this.pqL.add(this.pqR.remove());
+            this.pqL.add(this.pqR.poll());
         } else if (this.pqL.size() > this.pqR.size() + 1) { // 2+ too left
-            this.pqR.add(this.pqL.remove());
+            this.pqR.add(this.pqL.poll());
         }
     }
     
@@ -34,7 +34,7 @@ public class MedianFinder {
         } else if (this.pqL.size() > this.pqR.size()) {
             return this.pqL.peek();
         }
-        return ((double) (this.pqR.peek() + this.pqL.peek())) / 2;
+        return (((double) this.pqR.peek()) + ((double) this.pqL.peek())) / 2;
     }
 
 }
