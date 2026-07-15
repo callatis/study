@@ -1,16 +1,40 @@
 package org.callatis.study.concurrency;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class TokenBucketTest {
+
+    private final boolean withCAS;
+
+    public TokenBucketTest(boolean withCAS) {
+        this.withCAS = withCAS;
+    }
+
+    @Parameters(name = "withCAS={0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+            {false},
+            {true}
+        });
+    }
+
+    private TokenBucket newBucket(long capacity, long refillTokens, long refillPeriodMillis) {
+        return new TokenBucket(this.withCAS, capacity, refillTokens, refillPeriodMillis);
+    }
 
     @Test
     public void testStartsFullAndAllowsBurst() {
-        TokenBucket bucket = new TokenBucket(5, 1, 1000);
+        TokenBucket bucket = newBucket(5, 1, 1000);
 
         assertTrue(bucket.tryAcquire());
         assertTrue(bucket.tryAcquire());
@@ -19,7 +43,7 @@ public class TokenBucketTest {
 
     @Test
     public void testRefusesWhenEmptyWithoutConsuming() {
-        TokenBucket bucket = new TokenBucket(5, 1, 1000);
+        TokenBucket bucket = newBucket(5, 1, 1000);
 
         assertTrue("Refused when at full, untouched capacity", bucket.tryAcquire(5));
         assertFalse("Allowed when drained", bucket.tryAcquire());
@@ -27,7 +51,7 @@ public class TokenBucketTest {
 
     @Test
     public void testAccruesTokensOverTime() throws InterruptedException {
-        TokenBucket bucket = new TokenBucket(5, 1, 1000);
+        TokenBucket bucket = newBucket(5, 1, 1000);
 
         assertTrue(bucket.tryAcquire(5));
         assertFalse(bucket.tryAcquire());
@@ -38,7 +62,7 @@ public class TokenBucketTest {
 
     @Test
     public void testFractionalAccrualSurvivesFailedCall() throws InterruptedException {
-        TokenBucket bucket = new TokenBucket(5, 1, 1000);
+        TokenBucket bucket = newBucket(5, 1, 1000);
 
         assertTrue(bucket.tryAcquire(5));
 
@@ -51,7 +75,7 @@ public class TokenBucketTest {
 
     @Test
     public void testCapacityIsHardCeiling() throws InterruptedException {
-        TokenBucket bucket = new TokenBucket(3, 1, 2000);
+        TokenBucket bucket = newBucket(3, 1, 2000);
 
         // Idle far longer than it takes to accrue `capacity` tokens: an
         // uncapped bucket would hold ~8, a correctly capped one stays at 3.
@@ -68,7 +92,7 @@ public class TokenBucketTest {
         long capacity = 1000;
         long refillTokens = 1;
         long refillPeriodMillis = 1000;
-        TokenBucket bucket = new TokenBucket(capacity, refillTokens, refillPeriodMillis);
+        TokenBucket bucket = newBucket(capacity, refillTokens, refillPeriodMillis);
 
         int threadCount = 64;
         long durationMillis = 500L;
