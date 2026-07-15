@@ -21,6 +21,14 @@ Example 1:
     Output:
     `[null, null, null, 1.5, null, 2.0]`
 
+Example 2: 
+
+    Input: 
+    `["MedianFinder","addNum","findMedian","addNum","findMedian","addNum","findMedian","addNum","findMedian","addNum","findMedian"]`
+    `[[],[-1],[],[-2],[],[-3],[],[-4],[],[-5],[]]`
+    Output: 
+    `[null,null,-1.0,null,-1.5,null,-2.0,null,-2.5,null,-3.0]`
+
 Explanation
 ```java
     MedianFinder medianFinder = new MedianFinder();
