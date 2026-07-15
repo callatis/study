@@ -3,6 +3,7 @@ package org.callatis.study.concurrency;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -122,5 +123,42 @@ public class TokenBucketTest {
         assertTrue(
             "over-granted: granted=" + totalGranted.get() + " bound=" + bound,
             totalGranted.get() <= bound);
+    }
+
+    @Test
+    public void testBlockingAcquireReturnsTrueAfterWaiting() throws InterruptedException {
+        TokenBucket bucket = newBucket(5, 1, 1000); // 1 token/sec
+
+        assertTrue(bucket.tryAcquire(5)); // drain the bucket to empty
+
+        long startNS = System.nanoTime();
+        boolean acquired = bucket.tryAcquire(1, true); // must block until a token accrues
+        long elapsedMS = (System.nanoTime() - startNS) / 1_000_000L;
+
+        assertTrue("blocking acquire must eventually succeed", acquired);
+        assertTrue(
+            "blocking acquire should have waited ~1s for a token, waited=" + elapsedMS + "ms",
+            elapsedMS >= 800L);
+    }
+
+    @Test
+    public void testBlockingAcquireStaysBlockedUntilEnoughTokens() throws InterruptedException {
+        TokenBucket bucket = newBucket(5, 1, 1000); // 1 token/sec
+
+        assertTrue(bucket.tryAcquire(5)); // drain the bucket to empty
+
+        // 2 tokens at 1/sec need ~2s to accrue.
+        AtomicReference<Boolean> result = new AtomicReference<>();
+        Thread blocked = new Thread(() -> result.set(bucket.tryAcquire(2, true)));
+        blocked.start();
+
+        Thread.sleep(500L);
+        assertTrue(
+            "blocking acquire must not return before enough tokens accrue",
+            blocked.isAlive());
+
+        blocked.join(5000L);
+        assertFalse("blocking acquire thread should have completed", blocked.isAlive());
+        assertTrue("blocking acquire must eventually grant", Boolean.TRUE.equals(result.get()));
     }
 }

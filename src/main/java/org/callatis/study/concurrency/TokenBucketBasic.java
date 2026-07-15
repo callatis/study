@@ -13,17 +13,31 @@ class TokenBucketBasic extends TokenBucket {
     }
 
     @Override
-    public synchronized boolean tryAcquire(int permits) {
-        long currNS = System.nanoTime();
-        long periodNS = (currNS - lastNS);
-        this.k += (periodNS / this.refillPeriodNS) * refillTokens;
-        this.lastNS = currNS;
-        this.k = Math.min(k, (double) this.capacity);
-        if (this.k >= permits) {
-            this.k-= permits;
-            return true;
+    public boolean tryAcquire(int permits, boolean block) {
+        while (true) {
+            long timeNeeded = 0;
+            synchronized (this) {
+                long currNS = System.nanoTime();
+                long periodNS = (currNS - lastNS);
+                this.k += (periodNS / this.refillPeriodNS) * refillTokens;
+                this.lastNS = currNS;
+                this.k = Math.min(k, (double) this.capacity);
+                if (this.k >= permits) {
+                    this.k-= permits;
+                    return true;
+                }
+                if (!block) return false;
+                double needed = (double) permits - this.k;
+                timeNeeded = (int) Math.ceil(needed * this.tokenRefillTime);
+            }
+            try {
+                Thread.sleep(timeNeeded / 1_000_000, (int) timeNeeded % 1_000_000);
+                continue;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return false;
+            }
         }
-        return false;
     }
 
 }

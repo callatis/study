@@ -17,6 +17,8 @@ class TokenBucketCAS extends TokenBucket {
 
     }
 
+    private static final int NUM_WAIT_ITERATIONS = 100;
+
     private final AtomicReference<State> state;
 
     TokenBucketCAS(long capacity, long refillTokens, long refillPeriodMillis) {
@@ -25,8 +27,8 @@ class TokenBucketCAS extends TokenBucket {
     }
 
     @Override
-    public boolean tryAcquire(int permits) {
-        for (int i = 0; i < 100; i++) {
+    public boolean tryAcquire(int permits, boolean block) {
+        for (int i = 0; i < NUM_WAIT_ITERATIONS; i++) {
             boolean result = false;
             State myState = this.state.get();
             long myLastNS = myState.lastNS;
@@ -39,7 +41,17 @@ class TokenBucketCAS extends TokenBucket {
             }
             State currState = new State(kk, currNS);
             if (this.state.compareAndSet(myState, currState)) {
-                return result;
+                if (result || !block) return result; // We either got thru or we don't need to block
+                // we need to block and we did not get thru
+                double needed = (double) permits - kk;
+                long timeNeeded = (long) Math.ceil(needed * this.tokenRefillTime);
+                try {
+                    Thread.sleep(timeNeeded / 1_000_000, (int) timeNeeded % 1_000_000);
+                    continue;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
         }
 

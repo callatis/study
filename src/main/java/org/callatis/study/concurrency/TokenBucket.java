@@ -8,12 +8,15 @@ public class TokenBucket {
 
     protected final double refillPeriodNS;
 
+    protected final double tokenRefillTime;
+
     private final TokenBucket delegate;
 
     public TokenBucket(boolean withCAS, long capacity, long refillTokens, long refillPeriodMillis) {
         this.capacity = capacity;
         this.refillTokens = refillTokens;
         this.refillPeriodNS = refillPeriodMillis * 1_000_000.0;
+        this.tokenRefillTime = this.refillPeriodNS / this.refillTokens;
         this.delegate = withCAS
             ? new TokenBucketCAS(capacity, refillTokens, refillPeriodMillis)
             : new TokenBucketBasic(capacity, refillTokens, refillPeriodMillis);
@@ -23,6 +26,7 @@ public class TokenBucket {
         this.capacity = capacity;
         this.refillTokens = refillTokens;
         this.refillPeriodNS = refillPeriodMillis * 1_000_000.0;
+        this.tokenRefillTime = this.refillPeriodNS / this.refillTokens;
         this.delegate = null;
     }
 
@@ -31,7 +35,11 @@ public class TokenBucket {
     }
 
     public boolean tryAcquire(int permits) {
-        return this.delegate.tryAcquire(permits);
+        return tryAcquire(permits, false);
+    }
+
+    public boolean tryAcquire(int permits, boolean block) {
+        return this.delegate.tryAcquire(permits, block);
     }
 
 }
