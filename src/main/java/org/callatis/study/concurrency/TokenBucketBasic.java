@@ -28,7 +28,7 @@ class TokenBucketBasic extends TokenBucket {
                 }
                 if (!block) return false;
                 double needed = (double) permits - this.k;
-                timeNeeded = (int) Math.ceil(needed * this.tokenRefillTime);
+                timeNeeded = (long) Math.ceil(needed * this.tokenRefillTime);
             }
             try {
                 Thread.sleep(timeNeeded / 1_000_000, (int) timeNeeded % 1_000_000);
