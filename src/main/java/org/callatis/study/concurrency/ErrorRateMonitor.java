@@ -77,8 +77,12 @@ public class ErrorRateMonitor {
                 // sweeper reached this index - skip
                 continue;
             }
-            numErrors += resultCounters.numErrors.get();
-            numSuccesses += resultCounters.numSuccesses.get();
+            long e = resultCounters.numErrors.get();
+            long s = resultCounters.numSuccesses.get();
+            if (resultCounters.generation.get() <= g) { // bucket didn't get cleared in the middle of the read
+                numErrors += e;
+                numSuccesses += s;
+            }
         }
         return (numErrors == 0 && numSuccesses == 0) ? 0.0 : (double) numErrors / (numErrors + numSuccesses);
     }
