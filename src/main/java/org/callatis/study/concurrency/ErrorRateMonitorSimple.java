@@ -1,53 +1,57 @@
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class ErrorRateMonitorSimple {
 
-    public static final int NUM_EXTRA_BUCKETS = 2;
-
-    public static class ResultCounters {
-
-        private final AtomicLong numErrors = new AtomicLong(0);
-        private final AtomicLong numSuccesses = new AtomicLong(0);
-        private final AtomicLong generation = new AtomicLong(-1); 
-
-    }
+    public static final int NUM_EXTRA_BUCKETS = 2; // current
 
     private final int numBuckets;
-    private final AtomicReferenceArray<ResultCounters> ring;
+    private final AtomicLong[] errors;
+    private final AtomicLong[] successes;
+    private final long nanoStart;
 
     public ErrorRateMonitorSimple(int numBuckets) {
         this.numBuckets = numBuckets + NUM_EXTRA_BUCKETS;
-        ResultCounters[] resultCounters = new ResultCounters[this.numBuckets];
+        this.errors = new AtomicLong[this.numBuckets];
+        this.successes = new AtomicLong[this.numBuckets];
+        this.nanoStart = System.nanoTime();
         // L = 5, currSec = 20:36:22
-        long currTimeSec = System.nanoTime() / 1_000_000_000;
+        long currTimeSec = (getCurrentTimeInSeconds());
         for (int i = 0; i < this.numBuckets; i++) {
             // inx = 2
             int inx = (int) (currTimeSec + i) % this.numBuckets;
-            resultCounters[inx] = new ResultCounters();
+            long generation = currTimeSec + i;
+            this.errors[inx] = new AtomicLong(generation << 32); // right 32 bits, representing # errors, are 0
             // 0 = 20:36:25, 1 = 20:36:26, 2 = 20:36:22, 3 = 20:36:23, 4 = 20:36:24
-            resultCounters[inx].generation.set(currTimeSec + i);
+            this.successes[inx] = new AtomicLong(generation << 32);
         }
-        this.ring = new AtomicReferenceArray<>(resultCounters);
     }
 
     // generic SDK to be used by all apps in Walmart
     // error rate monitor
     // a service that has Rest APIs will call this API whenever it services an API
     public void record(boolean isError) {
-        long currTimeSec = System.nanoTime() / 1_000_000_000;
-        int inx = (int) currTimeSec % this.numBuckets;
-        ResultCounters currBucket = this.ring.get(inx);
-        if (currBucket.generation.get() < currTimeSec) { // old bucket - reset
-            currBucket.numErrors.set(0);
-            currBucket.numSuccesses.set(0);
-            currBucket.generation.set(currTimeSec);
-        }
+        long currTimeSec = getCurrentTimeInSeconds();
         if (isError) {
-            currBucket.numErrors.incrementAndGet();
+            recordEvent(this.errors, currTimeSec);
         } else {
-            currBucket.numSuccesses.incrementAndGet();
+            recordEvent(this.successes, currTimeSec);
         }
+    }
+
+    private void recordEvent(AtomicLong[] events, long currTimeSec) {
+        int inx = (int) currTimeSec % this.numBuckets;
+        boolean resetNeeded = true;
+        while (resetNeeded) {
+            long bucketVal = events[inx].get();
+            // long rightQuadFull = (1L << 32) - 1;
+            long bucketTimeSec = bucketVal >> 32;
+            resetNeeded = (bucketTimeSec < currTimeSec);
+            if (resetNeeded) {
+                // only set it if nobody else incremented it in the meantime
+                resetNeeded = !events[inx].compareAndSet(bucketVal, (currTimeSec << 32));
+            }
+        }
+        events[inx].incrementAndGet();
     }
 
     /**
@@ -60,22 +64,27 @@ public class ErrorRateMonitorSimple {
             timeWindowSec = this.numBuckets - NUM_EXTRA_BUCKETS - 1;
         }
 
-        long currTimeSec = System.nanoTime() / 1_000_000_000;
+        long currTimeSec = getCurrentTimeInSeconds();
         int i = (int) currTimeSec % this.numBuckets;
-        long g = this.ring.get(i).generation.get();
+        long rightQuadFull = (1L << 32) - 1;
         long numErrors = 0, numSuccesses = 0;
         for (int j = 0; j < timeWindowSec; j++) {
             if (i == 0) i = this.numBuckets;
             i--;
-            ResultCounters resultCounters = this.ring.get(i);
-            if (resultCounters.generation.get() < currTimeSec - this.numBuckets) {
-                // old bucket - skip
-                continue;
+            long e = this.errors[i].get();
+            if ((e >> 32) >= currTimeSec - this.numBuckets) {
+                numErrors += e & rightQuadFull;
             }
-            numErrors += resultCounters.numErrors.get();
-            numSuccesses += resultCounters.numSuccesses.get();
+            long s = this.successes[i].get();
+            if ((s >> 32) >= currTimeSec - this.numBuckets) {
+                numSuccesses += s & rightQuadFull;
+            }
         }
         return (numErrors == 0 && numSuccesses == 0) ? 0.0 : (double) numErrors / (numErrors + numSuccesses);
+    }
+
+    private long getCurrentTimeInSeconds() {
+        return ((System.nanoTime() - this.nanoStart) / 1_000_000_000L) % (1L << 31);
     }
 
 }
