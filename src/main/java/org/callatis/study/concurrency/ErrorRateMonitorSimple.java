@@ -1,3 +1,5 @@
+package org.callatis.study.concurrency;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ErrorRateMonitorSimple {
