@@ -3,7 +3,7 @@ package org.callatis.study.concurrency;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class BasicProducerConsumer<T> implements ProducerConsumer<T> {
+public class ProducerConsumerBasic<T> implements ProducerConsumer<T> {
 
     private final int capacity;
 
@@ -11,7 +11,7 @@ public class BasicProducerConsumer<T> implements ProducerConsumer<T> {
 
     private int n;
 
-    public BasicProducerConsumer(int capacity) {
+    public ProducerConsumerBasic(int capacity) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be greater than zero");
         }

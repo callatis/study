@@ -131,11 +131,11 @@ public class ProducerConsumerTest {
 
     private <T> ProducerConsumer<T> createProducerConsumer(int capacity) {
         if ("BasicProducerConsumer".equals(implementationType)) {
-            return new BasicProducerConsumer<>(capacity);
+            return new ProducerConsumerBasic<>(capacity);
         } else if ("FancyProducerConsumer".equals(implementationType)) {
-            return new FancyProducerConsumer<>(capacity);
+            return new ProducerConsumerFancy<>(capacity);
         } else if ("QueuedProducerConsumer".equals(implementationType)) {
-            return new QueuedProducerConsumer<>(capacity);
+            return new ProducerConsumerQueued<>(capacity);
         }
 
         throw new IllegalArgumentException("Unsupported implementation type: " + implementationType);

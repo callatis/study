@@ -3,13 +3,13 @@ package org.callatis.study.concurrency;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class QueuedProducerConsumer<T> implements ProducerConsumer<T> {
+public class ProducerConsumerQueued<T> implements ProducerConsumer<T> {
 
     private final int capacity;
 
     private final BlockingQueue<T> q;
 
-    public QueuedProducerConsumer(int capacity) {
+    public ProducerConsumerQueued(int capacity) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be greater than zero");
         }

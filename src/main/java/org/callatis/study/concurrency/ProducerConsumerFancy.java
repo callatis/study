@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FancyProducerConsumer<T> implements ProducerConsumer<T> {
+public class ProducerConsumerFancy<T> implements ProducerConsumer<T> {
 
     private final int capacity;
 
@@ -18,7 +18,7 @@ public class FancyProducerConsumer<T> implements ProducerConsumer<T> {
     private final Condition notFull = lock.newCondition();
     private final Condition notEmpty = lock.newCondition();
 
-    public FancyProducerConsumer(int capacity) {
+    public ProducerConsumerFancy(int capacity) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be greater than zero");
         }

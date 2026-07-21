@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ConditionsBoundedBlockingQueue implements BlockingQueue {
+public class BoundedBlockingQueueConditions implements BlockingQueue {
     private final int[] elems;
 
     private int n = 0, start = 0, end = 0;
@@ -15,7 +15,7 @@ public class ConditionsBoundedBlockingQueue implements BlockingQueue {
 
     private final Condition full = lock.newCondition();
 
-    public ConditionsBoundedBlockingQueue(int capacity) {
+    public BoundedBlockingQueueConditions(int capacity) {
         this.elems = new int[capacity];
     }
 

@@ -126,7 +126,7 @@ public class BoundedBlockingQueueTest {
     private static void runSafely(InterruptibleRunnable action, AtomicReference<Throwable> threadError) {
         try {
             action.run();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             threadError.compareAndSet(null, t);
         }
     }
@@ -139,15 +139,15 @@ public class BoundedBlockingQueueTest {
 
     private BlockingQueue createQueue(int capacity) {
         if ("simple".equals(this.implementationType)) {
-            return new SimpleBoundedBlockingQueue(capacity);
+            return new BoundedBlockingQueueSimple(capacity);
         }
 
         if ("semaphores".equals(this.implementationType)) {
-            return new SemaphoresBoundedBlockingQueue(capacity);
+            return new BoundedBlockingQueueSemaphores(capacity);
         }
 
         if ("conditions".equals(this.implementationType)) {
-            return new ConditionsBoundedBlockingQueue(capacity);
+            return new BoundedBlockingQueueConditions(capacity);
         }
 
         throw new IllegalArgumentException("Unsupported implementation: " + this.implementationType);

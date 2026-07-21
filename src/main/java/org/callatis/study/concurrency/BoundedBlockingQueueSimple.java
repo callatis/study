@@ -1,12 +1,12 @@
 package org.callatis.study.concurrency;
 
-public class SimpleBoundedBlockingQueue implements BlockingQueue {
+public class BoundedBlockingQueueSimple implements BlockingQueue {
 
     private final int[] elems;
 
     private int n = 0, start = 0, end = 0;
 
-    public SimpleBoundedBlockingQueue(int capacity) {
+    public BoundedBlockingQueueSimple(int capacity) {
         this.elems = new int[capacity];
     }
 

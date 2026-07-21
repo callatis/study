@@ -2,7 +2,7 @@ package org.callatis.study.concurrency;
 
 import java.util.concurrent.Semaphore;
 
-public class SemaphoresBoundedBlockingQueue implements BlockingQueue {
+public class BoundedBlockingQueueSemaphores implements BlockingQueue {
 
     private final int[] elems;
 
@@ -12,7 +12,7 @@ public class SemaphoresBoundedBlockingQueue implements BlockingQueue {
 
     private final Semaphore fullSem;
 
-    public SemaphoresBoundedBlockingQueue(int capacity) {
+    public BoundedBlockingQueueSemaphores(int capacity) {
         this.elems = new int[capacity];
         this.emptySem = new Semaphore(capacity);
         this.fullSem = new Semaphore(0);
