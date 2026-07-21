@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 
  * Note: this implementation packs the bucket and the counter in an AtomicReference. 
  */
-public class FixedWindowCounterAR {
+public class FixedWindowCounterAR implements RateLimiter {
 
     protected static class Snapshot {
         protected long counter = 0;
@@ -64,6 +64,7 @@ public class FixedWindowCounterAR {
      *
      * @return {@code true} if the request was admitted, {@code false} otherwise
      */
+    @Override
     public boolean tryAcquire() {
         while (true) { 
             long currMS = (System.nanoTime() - this.startNanoTime) / 1_000_000L;

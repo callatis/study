@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 
  * Note: this implementation packs the bucket and the counter in an AtomicLong. 
  */
-public class FixedWindowCounterAL {
+public class FixedWindowCounterAL implements RateLimiter {
 
     protected static final long RIGHT_INT_MASK = (1L << 32) - 1L;
 
@@ -58,6 +58,7 @@ public class FixedWindowCounterAL {
      *
      * @return {@code true} if the request was admitted, {@code false} otherwise
      */
+    @Override
     public boolean tryAcquire() {
         while (true) { 
             long currMS = (System.nanoTime() - this.startNanoTime) / 1_000_000L;
