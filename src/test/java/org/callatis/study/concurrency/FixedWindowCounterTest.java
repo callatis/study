@@ -1,5 +1,7 @@
 package org.callatis.study.concurrency;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -7,16 +9,50 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class FixedWindowCounterTest {
 
-    private FixedWindowCounter newCounter(int maxRequests, long windowMillis) {
-        return new FixedWindowCounter(maxRequests, windowMillis);
+    /** Minimal handle over each implementation's {@code tryAcquire()}. */
+    public interface Limiter {
+        boolean tryAcquire();
+    }
+
+    /** Builds a {@link Limiter} for one implementation. */
+    public interface Factory {
+        Limiter create(int maxRequests, long windowMillis);
+    }
+
+    private final Factory factory;
+
+    public FixedWindowCounterTest(String name, Factory factory) {
+        this.factory = factory;
+    }
+
+    @Parameters(name = "{0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+            {"FixedWindowCounter", (Factory) (max, win) -> {
+                FixedWindowCounterAL c = new FixedWindowCounterAL(max, win);
+                return c::tryAcquire;
+            }},
+            {"FixedWindowCounterAR", (Factory) (max, win) -> {
+                FixedWindowCounterAR c = new FixedWindowCounterAR(max, win);
+                return c::tryAcquire;
+            }}
+        });
+    }
+
+    private Limiter newCounter(int maxRequests, long windowMillis) {
+        return factory.create(maxRequests, windowMillis);
     }
 
     @Test
     public void testAdmitsUpToLimitWithinWindow() {
-        FixedWindowCounter counter = newCounter(3, 10_000);
+        Limiter counter = newCounter(3, 10_000);
 
         assertTrue(counter.tryAcquire());
         assertTrue(counter.tryAcquire());
@@ -25,7 +61,7 @@ public class FixedWindowCounterTest {
 
     @Test
     public void testRejectsBeyondLimitWithinWindow() {
-        FixedWindowCounter counter = newCounter(3, 10_000);
+        Limiter counter = newCounter(3, 10_000);
 
         assertTrue(counter.tryAcquire());
         assertTrue(counter.tryAcquire());
@@ -35,7 +71,7 @@ public class FixedWindowCounterTest {
 
     @Test
     public void testRejectionDoesNotConsume() {
-        FixedWindowCounter counter = newCounter(1, 10_000);
+        Limiter counter = newCounter(1, 10_000);
 
         assertTrue(counter.tryAcquire());
         assertFalse(counter.tryAcquire());
@@ -44,7 +80,7 @@ public class FixedWindowCounterTest {
 
     @Test
     public void testCounterResetsOnNewWindow() throws InterruptedException {
-        FixedWindowCounter counter = newCounter(2, 500);
+        Limiter counter = newCounter(2, 500);
 
         assertTrue(counter.tryAcquire());
         assertTrue(counter.tryAcquire());
@@ -61,7 +97,7 @@ public class FixedWindowCounterTest {
     public void testConcurrentInvariantNeverOverGrantsPerWindow() throws InterruptedException {
         int maxRequests = 100;
         long windowMillis = 50;
-        FixedWindowCounter counter = newCounter(maxRequests, windowMillis);
+        Limiter counter = newCounter(maxRequests, windowMillis);
 
         int threadCount = 64;
         long durationMillis = 500L;

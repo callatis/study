@@ -1,6 +1,6 @@
 package org.callatis.study.concurrency;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Fixed Window Counter rate limiter.
@@ -23,12 +23,20 @@ import java.util.concurrent.atomic.AtomicLong;
  * class would be backed by a dedicated {@code FixedWindowCounter.md}, but the
  * fixed-window problem is authored inside the shared RateLimiterProblems
  * document.
+ * 
+ * Note: this implementation packs the bucket and the counter in an AtomicReference. 
  */
-public class FixedWindowCounter {
+public class FixedWindowCounterAR {
 
-    protected static final long RIGHT_INT_MASK = (1L << 32) - 1L;
+    protected static class Snapshot {
+        protected long counter = 0;
+        protected long bucket = 0;
 
-    protected static final long LEFT_INT_MASK = RIGHT_INT_MASK << 32;
+        public Snapshot(long counter, long bucket) {
+            this.counter = counter;
+            this.bucket = bucket;
+        }
+    }
 
     protected final int maxRequests;
 
@@ -36,13 +44,13 @@ public class FixedWindowCounter {
 
     protected final long startNanoTime = System.nanoTime();
 
-    protected final AtomicLong state = new AtomicLong();
+    protected final AtomicReference<Snapshot> state = new AtomicReference<>(new Snapshot(0, 0));
 
     /**
      * @param maxRequests  the limit of admitted requests per window
      * @param windowMillis the fixed window length in milliseconds
      */
-    public FixedWindowCounter(int maxRequests, long windowMillis) {
+    public FixedWindowCounterAR(int maxRequests, long windowMillis) {
         this.maxRequests = maxRequests;
         this.windowMillis = windowMillis;
     }
@@ -57,32 +65,25 @@ public class FixedWindowCounter {
      * @return {@code true} if the request was admitted, {@code false} otherwise
      */
     public boolean tryAcquire() {
-        checkAndResetWindow();
         while (true) { 
-            long currState = this.state.get();
-            int currCounter = (int) (currState & RIGHT_INT_MASK);
-            if (currCounter >= this.maxRequests) {
-                return false;
-            }
-            long bucket = currState & LEFT_INT_MASK;
-            long newState = bucket | (currCounter + 1);
-            if (this.state.compareAndSet(currState, newState)) {
-                return true;
-            }
-        }
-    }
-
-    private void checkAndResetWindow() {
-        boolean needsReset = true;
-        long currMS = (System.nanoTime() - this.startNanoTime) / 1_000_000L;
-        long bucket = currMS / this.windowMillis;
-        while (needsReset) {
-            long currState = this.state.get();
-            long currBucket = (currState & LEFT_INT_MASK) >> 32;
-            needsReset = (bucket > currBucket);
-            if (needsReset) { // we need to advance the bucket
-                long newState = bucket << 32;
-                needsReset = !this.state.compareAndSet(currState, newState);
+            long currMS = (System.nanoTime() - this.startNanoTime) / 1_000_000L;
+            long bucket = currMS / this.windowMillis;
+            Snapshot currState = this.state.get();
+            long currCounter = currState.counter;
+            long currBucket = currState.bucket;
+            if (bucket > currBucket) { // needs a new window
+                Snapshot newState = new Snapshot(1, bucket);
+                if (this.state.compareAndSet(currState, newState)) {
+                    return true;
+                }
+            } else { // still in the old window
+                if (currCounter >= this.maxRequests) {
+                    return false;
+                }
+                Snapshot newState = new Snapshot(currCounter + 1, bucket);
+                if (this.state.compareAndSet(currState, newState)) {
+                    return true;
+                }
             }
         }
     }
