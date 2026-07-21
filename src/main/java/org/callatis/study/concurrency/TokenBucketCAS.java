@@ -23,10 +23,11 @@ class TokenBucketCAS extends TokenBucket {
 
     TokenBucketCAS(long capacity, long refillTokens, long refillPeriodMillis) {
         super(capacity, refillTokens, refillPeriodMillis);
-        this.state = new AtomicReference<State>(new State((double) capacity, System.nanoTime()));
+        this.state = new AtomicReference<>(new State((double) capacity, System.nanoTime()));
     }
 
     @Override
+    @SuppressWarnings("CallToPrintStackTrace")
     public boolean tryAcquire(int permits, boolean block) {
         for (int i = 0; i < NUM_WAIT_ITERATIONS; i++) {
             boolean result = false;
@@ -47,7 +48,6 @@ class TokenBucketCAS extends TokenBucket {
                 long timeNeeded = (long) Math.ceil(needed * this.tokenRefillTime);
                 try {
                     Thread.sleep(timeNeeded / 1_000_000, (int) timeNeeded % 1_000_000);
-                    continue;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     return false;
