@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BoundedBlockingQueueConditions implements BlockingQueue {
+public class BoundedBlockingQueueConditions implements BoundedBlockingQueue {
     private final int[] elems;
 
     private int n = 0, start = 0, end = 0;

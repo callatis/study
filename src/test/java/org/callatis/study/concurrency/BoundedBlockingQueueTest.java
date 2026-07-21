@@ -37,7 +37,7 @@ public class BoundedBlockingQueueTest {
 
     @Test
     public void testExample1FromProblemStatement() throws InterruptedException {
-        BlockingQueue queue = createQueue(2);
+        BoundedBlockingQueue queue = createQueue(2);
 
         queue.enqueue(1);
         assertEquals(1, queue.dequeue());
@@ -79,7 +79,7 @@ public class BoundedBlockingQueueTest {
 
     @Test
     public void testExample2FromProblemStatement() throws InterruptedException {
-        BlockingQueue queue = createQueue(3);
+        BoundedBlockingQueue queue = createQueue(3);
 
         queue.enqueue(1);
         queue.enqueue(0);
@@ -137,7 +137,7 @@ public class BoundedBlockingQueueTest {
         }
     }
 
-    private BlockingQueue createQueue(int capacity) {
+    private BoundedBlockingQueue createQueue(int capacity) {
         if ("simple".equals(this.implementationType)) {
             return new BoundedBlockingQueueSimple(capacity);
         }

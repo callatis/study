@@ -1,6 +1,6 @@
 package org.callatis.study.concurrency;
 
-public interface BlockingQueue {
+public interface BoundedBlockingQueue {
     void enqueue(int element) throws InterruptedException;
 
     int dequeue() throws InterruptedException;
