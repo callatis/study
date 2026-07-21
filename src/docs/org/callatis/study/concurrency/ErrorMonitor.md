@@ -33,7 +33,7 @@ You do **not** need to implement the API being monitored or the introspector —
 
 ### Window semantics
 
-Time is divided into **wall-clock–aligned one-second buckets** (boundaries at `.000 ms`). A call recorded at `12:00:03.997` and one recorded at `12:00:03.002` belong to the same bucket.
+Time is divided into **one-second buckets on a monotonic clock**, measured from a fixed origin the monitor captures when it is constructed. The buckets do **not** need to align to wall-clock second boundaries (`.000 ms`); any two calls that fall in the same one-second slice of that monotonic timeline belong to the same bucket.
 
 `getErrorRate(w)` aggregates the `w` **completed** buckets preceding the current one. It does not include the second currently in flight. This means the reported rate lags reality by up to one second, which is acceptable.
 
@@ -47,7 +47,7 @@ Time is divided into **wall-clock–aligned one-second buckets** (boundaries at 
 ### Constraints
 
 - `1 <= timeWindowSec <= 300`
-- `record` and `getErrorRate` use the system wall clock internally; no clock is injected.
+- `record` and `getErrorRate` read time from a **monotonic** clock (e.g. `System.nanoTime()`) measured against a start captured at construction; no wall-clock alignment is required and no clock is injected.
 - The monitor must survive being idle for hours and then queried without reporting stale data.
 
 ---
@@ -104,7 +104,7 @@ The 2-second window covers buckets 1 and 2 (two successes). The 3-second window 
 2. Eliminate the need for any background sweeper thread or scheduled cleanup — buckets must expire lazily.
 3. Ensure a bucket that received no traffic is distinguishable from a bucket whose traffic has expired, without writing to it.
 4. Reduce cache-line contention between writer threads.
-5. What happens if the system clock steps backwards (NTP correction)?
+5. What guarantees does a monotonic clock give you here that a wall clock would not (e.g. NTP steps)? What would still break if you used the wall clock instead?
 6. What if a single bucket can overflow its counter width?
 
 ---
@@ -184,8 +184,10 @@ public final class ErrorMonitor {
     private static final ThreadLocal<Integer> MY_STRIPE =
             ThreadLocal.withInitial(() -> STRIPE_SEQ.getAndIncrement() & STRIPE_MASK);
 
-    private static long nowSec() {
-        return System.currentTimeMillis() / 1000L;
+    private final long startNanos = System.nanoTime();
+
+    private long nowSec() {
+        return (System.nanoTime() - startNanos) / 1_000_000_000L;
     }
 
     public void record(boolean isError) {
@@ -252,7 +254,7 @@ public final class ErrorMonitor {
 - **Why the generation lives in the same word as the counts.** Splitting them into `AtomicLong stamp` + `LongAdder ok/err` is the natural first draft and it is wrong: a writer can read a matching stamp, be descheduled for a second, and then increment counters that a reader has already begun attributing to the new bucket. One word, one CAS, no window.
 - **Counter width.** 22 bits caps a bucket at ~4.19M events per second *per stripe* — 268M/s across 64 stripes. Saturating on overflow biases the rate slightly but never corrupts it. If that ceiling is too low, trade generation bits for count bits (16-bit generation still gives ~1000 years at 512 buckets), or widen a cell to two words guarded by a seqlock.
 - **Snapshot consistency.** The scan is not atomic. A call recorded while the loop is halfway through may or may not appear. For a monitoring signal that is the right trade; making it atomic would require quiescing writers, which is precisely what we refused to do.
-- **Clock steps.** Backwards jumps drop samples for the duration of the jump. Forwards jumps make buckets appear empty, which reads as `0.0`. `System.nanoTime()` would be monotonic but has no relationship to wall-clock second boundaries, which the aligned-bucket requirement demands.
+- **Clock choice.** Buckets only need to be one second *wide*, not aligned to any wall-clock boundary, so a monotonic clock is the natural fit: `nowSec()` counts seconds since a start captured at construction. `System.nanoTime()` never steps backwards, so the "clock went back, drop the sample" branch becomes unreachable in practice, and a query after a long idle period simply sees expired generations and reads `0.0`.
 - **Reader/writer race on the boundary.** Excluding the in-flight second means a reader never touches a bucket that a writer is actively resetting for a *new* generation, so a stale bucket can never be counted as fresh.
 
 ---
@@ -267,11 +269,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ErrorMonitorTest {
 
-    /** Block until just after the next wall-clock second boundary. */
-    private static void alignToSecond() throws InterruptedException {
-        long ms = System.currentTimeMillis();
-        Thread.sleep(1000 - (ms % 1000) + 20);
-    }
+    // Buckets start at construction time, so tests don't align to any wall-clock
+    // boundary — they record into the fresh monitor's opening second and sleep
+    // across whole seconds to roll buckets over.
 
     @Test
     void emptyWindowReturnsZero() {
@@ -281,26 +281,23 @@ class ErrorMonitorTest {
     @Test
     void singleBucketRate() throws Exception {
         ErrorMonitor m = new ErrorMonitor();
-        alignToSecond();
         m.record(false);
         m.record(true);
         m.record(false);
-        Thread.sleep(1000);
+        Thread.sleep(1100);
         assertEquals(1.0 / 3.0, m.getErrorRate(1), 1e-9);
     }
 
     @Test
     void currentInFlightSecondIsExcluded() throws Exception {
         ErrorMonitor m = new ErrorMonitor();
-        alignToSecond();
         m.record(true);
-        assertEquals(0.0, m.getErrorRate(1));   // still inside the same bucket
+        assertEquals(0.0, m.getErrorRate(1));   // still inside the opening bucket
     }
 
     @Test
     void dataExpiresFromTheWindow() throws Exception {
         ErrorMonitor m = new ErrorMonitor();
-        alignToSecond();
         m.record(true);
         Thread.sleep(3000);
         assertEquals(1.0, m.getErrorRate(5), 1e-9);   // still in a 5s window
@@ -310,11 +307,10 @@ class ErrorMonitorTest {
     @Test
     void idleGapsAreSkippedNotCounted() throws Exception {
         ErrorMonitor m = new ErrorMonitor();
-        alignToSecond();
         m.record(true);
         Thread.sleep(2000);
         m.record(false);
-        Thread.sleep(1000);
+        Thread.sleep(1100);
         assertEquals(0.5, m.getErrorRate(5), 1e-9);   // one error, one success, gap ignored
     }
 
@@ -324,7 +320,6 @@ class ErrorMonitorTest {
         int threads = 32, perThread = 50_000;
         LongAdder expectedErrors = new LongAdder();
 
-        alignToSecond();
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         CountDownLatch done = new CountDownLatch(threads);
         for (int t = 0; t < threads; t++) {
@@ -349,7 +344,6 @@ class ErrorMonitorTest {
     @Test
     void concurrentReadersDoNotDisturbEachOther() throws Exception {
         ErrorMonitor m = new ErrorMonitor();
-        alignToSecond();
         for (int i = 0; i < 1000; i++) m.record(i % 5 == 0);
         Thread.sleep(1100);
 
@@ -374,4 +368,4 @@ class ErrorMonitorTest {
 }
 ```
 
-> The timing-dependent tests above are honest about what the real class does but are flaky by nature. In a production repo, extract `nowSec()` behind a package-private seam so the tests can drive time deterministically — then mention in the interview that you deliberately kept it out of the public API.
+> The timing-dependent tests above are honest about what the real class does but are flaky by nature: they assume the monitor's opening second doesn't roll over mid-setup (true within microseconds of construction) and that `Thread.sleep` crosses the intended number of one-second buckets. In a production repo, extract `nowSec()` behind a package-private seam so the tests can drive time deterministically — then mention in the interview that you deliberately kept it out of the public API.
