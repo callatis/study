@@ -3,12 +3,13 @@ package org.callatis.study.queues;
 
 public class ThreadSafeQueue<T> implements ThreadUnsafeQueue<T> {
 	
-	private ThreadUnsafeQueue<T> queue;
+	private final ThreadUnsafeQueue<T> queue;
 	
 	public ThreadSafeQueue(ThreadUnsafeQueue<T> queue) {
 		this.queue = queue; 
 	}
 	
+	@Override
 	public void enqueue(T object) {
 		try {
 			synchronized(this.queue) {
@@ -22,6 +23,7 @@ public class ThreadSafeQueue<T> implements ThreadUnsafeQueue<T> {
 		}
 	}
 	
+    @Override
 	public T dequeue() {
 		T result;
 		try {
@@ -39,12 +41,14 @@ public class ThreadSafeQueue<T> implements ThreadUnsafeQueue<T> {
 		} 
 	}
 	
+	@Override
 	public boolean isQueueFull() {
 		synchronized(this.queue) {
 			return this.queue.isQueueFull();
 		}
 	}
 
+	@Override
 	public boolean isQueueEmpty() {
 		synchronized(this.queue) {
 			return this.queue.isQueueEmpty();
