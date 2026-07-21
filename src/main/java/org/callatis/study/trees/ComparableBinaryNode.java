@@ -4,7 +4,7 @@ import java.util.Comparator;
 
 public class ComparableBinaryNode<T> extends BinaryNode<T> implements Comparable<T> {
 	
-	private Comparator<T> comparator; 
+	private final Comparator<T> comparator; 
 
 	public ComparableBinaryNode(T val, Comparator<T> comparator, 
 			ComparableBinaryNode<T> left, ComparableBinaryNode<T> right) {

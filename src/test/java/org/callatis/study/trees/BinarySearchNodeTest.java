@@ -2,8 +2,6 @@ package org.callatis.study.trees;
 
 import java.util.Comparator;
 
-import org.callatis.study.trees.BinaryNode;
-import org.callatis.study.trees.BinarySearchNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.study.callatis.utils.IntComparator;
@@ -16,8 +14,8 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testBadLeft() {
 		try {
-			new BinarySearchNode<Integer>(0, this.comparator, 
-				new BinarySearchNode<Integer>(1, comparator, null, null), 
+			new BinarySearchNode<>(0, this.comparator, 
+				new BinarySearchNode<>(1, comparator, null, null), 
 				null);
 			Assert.fail("Expected exception");
 		} catch (IllegalArgumentException e) {
@@ -28,9 +26,9 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testBadRight() {
 		try {
-			new BinarySearchNode<Integer>(1, this.comparator,
+			new BinarySearchNode<>(1, this.comparator,
 					null, 
-					new BinarySearchNode<Integer>(0, comparator, null, null));
+					new BinarySearchNode<>(0, comparator, null, null));
 			Assert.fail("Expected exception");
 		} catch (IllegalArgumentException e) {
 			Assert.assertTrue(e.getMessage(), e.getMessage().contains("0 >= 1"));
@@ -40,8 +38,8 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testLeft1() {
 		BinarySearchNode<Integer> left;
-		BinarySearchNode<Integer> bst = new BinarySearchNode<Integer>(1, this.comparator, 
-			(left = new BinarySearchNode<Integer>(0, comparator, null, null)), 
+		BinarySearchNode<Integer> bst = new BinarySearchNode<>(1, this.comparator, 
+			(left = new BinarySearchNode<>(0, comparator, null, null)), 
 			null);
 		BinarySearchNode<Integer> leftRight = (BinarySearchNode<Integer>) left.getRight();
 		Assert.assertTrue(bst == bst.rotateLeft());
@@ -54,9 +52,9 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testRight1() {
 		BinarySearchNode<Integer> right;
-		BinarySearchNode<Integer> bst = new BinarySearchNode<Integer>(0, this.comparator,
+		BinarySearchNode<Integer> bst = new BinarySearchNode<>(0, this.comparator,
 				null, 
-				(right = new BinarySearchNode<Integer>(1, comparator, null, null)));
+				(right = new BinarySearchNode<>(1, comparator, null, null)));
 		BinarySearchNode<Integer> rightLeft = (BinarySearchNode<Integer>) right.getLeft();
 
 		Assert.assertTrue(bst == bst.rotateRight());
@@ -69,12 +67,12 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testComplexRotation() {
 		BinarySearchNode<Integer> left;
-		BinarySearchNode<Integer> bst = new BinarySearchNode<Integer>(6, this.comparator, 
-				(left = new BinarySearchNode<Integer>(4, comparator, 
-					new BinarySearchNode<Integer>(2, comparator, 
-							new BinarySearchNode<Integer>(1, comparator, null, null), 
-							new BinarySearchNode<Integer>(3, comparator, null, null)), 
-					new BinarySearchNode<Integer>(5, comparator, null, null))), 
+		BinarySearchNode<Integer> bst = new BinarySearchNode<>(6, this.comparator, 
+				(left = new BinarySearchNode<>(4, comparator, 
+					new BinarySearchNode<>(2, comparator, 
+							new BinarySearchNode<>(1, comparator, null, null), 
+							new BinarySearchNode<>(3, comparator, null, null)), 
+					new BinarySearchNode<>(5, comparator, null, null))), 
 			null);
 		Assert.assertTrue(bst == bst.rotateLeft());
 		// rotate right
@@ -85,12 +83,12 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testToAVL1() {
 		BinarySearchNode<Integer> avlNode;
-		BinarySearchNode<Integer> bst = new BinarySearchNode<Integer>(6, this.comparator, 
-				(avlNode = new BinarySearchNode<Integer>(4, comparator, 
-					new BinarySearchNode<Integer>(2, comparator, 
-							new BinarySearchNode<Integer>(1, comparator, null, null), 
-							new BinarySearchNode<Integer>(3, comparator, null, null)), 
-					new BinarySearchNode<Integer>(5, comparator, null, null))), 
+		BinarySearchNode<Integer> bst = new BinarySearchNode<>(6, this.comparator, 
+				(avlNode = new BinarySearchNode<>(4, comparator, 
+					new BinarySearchNode<>(2, comparator, 
+							new BinarySearchNode<>(1, comparator, null, null), 
+							new BinarySearchNode<>(3, comparator, null, null)), 
+					new BinarySearchNode<>(5, comparator, null, null))), 
 			null);
 		Assert.assertTrue(avlNode == bst.toAVL());
 	}
@@ -98,12 +96,12 @@ public class BinarySearchNodeTest {
 	@Test
 	public void testLinearToAVL() {
 		BinarySearchNode<Integer> avlNode;
-		BinarySearchNode<Integer> bst = new BinarySearchNode<Integer>(6, this.comparator,
-				new BinarySearchNode<Integer>(5, comparator, 
-					(avlNode = new BinarySearchNode<Integer>(4, comparator,
-						new BinarySearchNode<Integer>(3, comparator, 
-								new BinarySearchNode<Integer>(2, comparator, 
-										new BinarySearchNode<Integer>(1, comparator, null, null), 
+		BinarySearchNode<Integer> bst = new BinarySearchNode<>(6, this.comparator,
+				new BinarySearchNode<>(5, comparator, 
+					(avlNode = new BinarySearchNode<>(4, comparator,
+						new BinarySearchNode<>(3, comparator, 
+								new BinarySearchNode<>(2, comparator, 
+										new BinarySearchNode<>(1, comparator, null, null), 
 										null), null), 
 						null)),
 				null), 

@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 public class BinarySearchNode<T> extends ComparableBinaryNode<T> {
 
+    @SuppressWarnings("OverridableMethodCallInConstructor")
 	public BinarySearchNode(T val, Comparator<T> comparator, 
 			ComparableBinaryNode<T> left,
 			ComparableBinaryNode<T> right) {
@@ -11,7 +12,7 @@ public class BinarySearchNode<T> extends ComparableBinaryNode<T> {
 		assertBST();
 	}
 	
-	public void assertBST() {
+	protected void assertBST() {
 		if (getLeft() != null && ((BinarySearchNode<T>) this.getLeft()).compareTo(getVal()) > 0) {
 			throw new IllegalArgumentException("Must have left.val = " 
 					+ getLeft().getVal() + " <= " + getVal() + " = this.val");

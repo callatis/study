@@ -10,23 +10,80 @@ import java.util.List;
 import org.callatis.study.utils.AuPair;
 
 /**
+ * A <b>binary min-heap</b> backed by an explicit, pointer-based binary tree
+ * ({@link BinaryNode}) rather than the more common array/{@code ArrayList}
+ * representation.
+ *
+ * <h2>Heap invariant</h2>
+ * Every node's value is less than or equal to the values of its children
+ * (ordering is defined by the supplied {@link Comparator}). Consequently the
+ * smallest element is always at the {@link #getRoot() root} and can be read in
+ * {@code O(1)} time via {@link #peek()}.
+ *
+ * <h2>Shape / balance strategy</h2>
+ * A classic array-heap stays a <i>complete</i> tree for free. Because this
+ * implementation uses real node objects, it instead keeps the tree balanced by
+ * re-running AVL rotations ({@link BinaryNode#toAVL()}) after each insertion.
+ * This guarantees a height of {@code O(log n)}, which bounds the cost of the
+ * bubble-up and bubble-down passes.
+ *
+ * <h2>Complexity</h2>
+ * <ul>
+ *   <li>{@link #peek()} / {@link #isEmpty()} &ndash; {@code O(1)}</li>
+ *   <li>{@link #add(Object)} &ndash; {@code O(log n)} amortized (insert on the
+ *       right spine, bubble up, then AVL re-balance)</li>
+ *   <li>{@link #pop()} &ndash; {@code O(log n)} (detach a deepest leaf, promote
+ *       it to the root, then bubble down)</li>
+ * </ul>
+ *
+ * <p>This class is <b>not</b> thread-safe.</p>
+ *
+ * @param <T> the type of elements held in the heap
+ *
  * @author mpoplacenel
  */
 public class MinHeap<T> {
 	
+	/** Root of the backing binary tree; holds the current minimum, or {@code null} when empty. */
 	private BinaryNode<T> root;
 	
-	private Comparator<T> comparator;
+	/** Ordering used to compare elements; defines what "minimum" means. */
+	private final Comparator<T> comparator;
 	
+	/**
+	 * Creates an empty heap ordered by the given comparator.
+	 *
+	 * @param comparator the ordering that defines the heap's minimum; must not be {@code null}
+	 */
 	public MinHeap(Comparator<T> comparator) {
 		this.comparator = comparator;
 	}
 
+	/**
+	 * Inserts a value into the heap.
+	 *
+	 * <p>The new node is appended to the tree, bubbled up to restore the heap
+	 * invariant, and the tree is then AVL-re-balanced. Runs in {@code O(log n)}.</p>
+	 *
+	 * @param val the value to insert
+	 * @return {@code this}, to allow fluent chaining such as {@code heap.add(1).add(2)}
+	 */
 	public MinHeap<T> add(final T val) {
-		this.root = addNode(new BinaryNode<T>(val, null, null));
+		this.root = addNode(new BinaryNode<>(val, null, null));
 		return this;
 	}
 
+	/**
+	 * Removes and returns the smallest element (the root).
+	 *
+	 * <p>Algorithm: locate a deepest leaf by walking down, preferring the right
+	 * child; the root's value is captured as the result; the chosen leaf is
+	 * promoted into the root position, inheriting the old root's children; and
+	 * finally {@link #bubbleRootDown()} restores the heap invariant. Runs in
+	 * {@code O(log n)}.</p>
+	 *
+	 * @return the previous minimum, or {@code null} if the heap is empty
+	 */
 	public T pop() {
 		if (this.root == null) return null;
 		BinaryNode<T> leafParent = this.root;
@@ -63,27 +120,55 @@ public class MinHeap<T> {
 		return result;
 	}
 	
+	/**
+	 * Returns, without removing, the smallest element.
+	 *
+	 * @return the current minimum, or {@code null} if the heap is empty
+	 */
 	public T peek() {
 		return this.root == null ? null : this.root.getVal();
 	}
 	
+	/**
+	 * @return {@code true} if the heap contains no elements
+	 */
 	public boolean isEmpty() {
 		return this.root == null;
 	}
 
+	/**
+	 * Package-visible accessor for the backing tree, used by tests to inspect
+	 * shape (e.g. height).
+	 *
+	 * @return the root node, or {@code null} if the heap is empty
+	 */
 	BinaryNode<T> getRoot() {
 		return this.root;
 	}
 
+	/**
+	 * @return the comparator that defines this heap's ordering
+	 */
 	Comparator<T> getComparator() {
 		return this.comparator;
 	}
 
+	/**
+	 * Attaches a freshly created node to the tree and restores order.
+	 *
+	 * <p>The node is appended along the right spine (the first parent on that
+	 * spine with a free child slot), bubbled up so the heap invariant holds along
+	 * the insertion path, and finally the whole tree is AVL-re-balanced so its
+	 * height stays {@code O(log n)}.</p>
+	 *
+	 * @param node the new single-value node to insert
+	 * @return the (possibly new) root after bubbling up and AVL re-balancing
+	 */
 	BinaryNode<T> addNode(final BinaryNode<T> node) {
 		if (this.root == null) {
 			return this.root = node;
 		}
-		List<BinaryNode<T>> path = new ArrayList<BinaryNode<T>>();
+		List<BinaryNode<T>> path = new ArrayList<>();
 		BinaryNode<T> right = this.root;
 		while (right.getRight() != null) {
 			path.add(right);
@@ -102,6 +187,17 @@ public class MinHeap<T> {
 		return this.root.toAVL();
 	}
 	
+	/**
+	 * Swaps a {@code parent} node with one of its (direct) children, rewiring all
+	 * child pointers so the {@code child} takes the parent's place in the tree and
+	 * vice-versa.
+	 *
+	 * <p>Only the two nodes' own links are updated; the caller is responsible for
+	 * fixing the grandparent's pointer (see {@link #bubbleUp(List)}).</p>
+	 *
+	 * @param parent the node currently higher in the tree
+	 * @param child  a direct child of {@code parent} to swap it with
+	 */
 	protected void swap(BinaryNode<T> parent, BinaryNode<T> child) {
 		BinaryNode<T> left = parent.getLeft();
 		BinaryNode<T> right = parent.getRight();
@@ -111,6 +207,19 @@ public class MinHeap<T> {
 		child.setRight(child == right ? parent : right);
 	}
 
+	/**
+	 * Restores the heap invariant upward along an insertion path.
+	 *
+	 * <p>Starting from the just-inserted node (the last element of {@code path})
+	 * and walking toward the root, each node is compared with its parent; while it
+	 * is smaller it is {@link #swap(BinaryNode, BinaryNode) swapped} up and the
+	 * grandparent's pointer is re-linked to it (or {@link #root} is updated when
+	 * the top is reached). The moment a parent is not larger, the invariant holds
+	 * and the pass stops.</p>
+	 *
+	 * @param path the chain of nodes from the root down to the newly inserted node,
+	 *             in root-to-leaf order
+	 */
 	protected void bubbleUp(List<BinaryNode<T>> path) {
 		BinaryNode<T> node = path.get(path.size() - 1);
 		for (int i = path.size() - 2; i >= 0; i--) {
@@ -137,6 +246,15 @@ public class MinHeap<T> {
 		}
 	}
 
+	/**
+	 * Restores the heap invariant downward from the root after a {@link #pop()}.
+	 *
+	 * <p>Repeatedly compares the sinking node with its children: if both children
+	 * are not smaller (or it is a leaf) the invariant holds and the pass stops;
+	 * otherwise the node is swapped with its smaller child
+	 * (chosen via {@link #minNonNull(BinaryNode, BinaryNode)}) and the descent
+	 * continues. {@link #root} is updated whenever the topmost node is swapped.</p>
+	 */
 	protected void bubbleRootDown() {
 		BinaryNode<T> node = this.root;
 		while (node != null) {
