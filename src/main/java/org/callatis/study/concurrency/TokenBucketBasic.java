@@ -13,6 +13,7 @@ class TokenBucketBasic extends TokenBucket {
     }
 
     @Override
+    @SuppressWarnings("CallToPrintStackTrace")
     public boolean tryAcquire(int permits, boolean block) {
         while (true) {
             long timeNeeded = 0;
@@ -32,7 +33,6 @@ class TokenBucketBasic extends TokenBucket {
             }
             try {
                 Thread.sleep(timeNeeded / 1_000_000, (int) timeNeeded % 1_000_000);
-                continue;
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return false;
