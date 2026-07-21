@@ -16,7 +16,7 @@ class TokenBucketBasic extends TokenBucket {
     @SuppressWarnings("CallToPrintStackTrace")
     public boolean tryAcquire(int permits, boolean block) {
         while (true) {
-            long timeNeeded = 0;
+            long timeNeeded;
             synchronized (this) {
                 long currNS = System.nanoTime();
                 long periodNS = (currNS - lastNS);
