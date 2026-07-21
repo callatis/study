@@ -18,7 +18,21 @@ import junit.framework.Assert;
  * @author mishe
  */
 public class WoodSeller {
-	    
+
+    /**
+     * Returns the maximum revenue obtainable by cutting an {@code m x n} board into the priced
+     * pieces listed in {@code prices} (each row is {@code [height, width, price]}).
+     *
+     * <p>This is the first, un-cached attempt: it indexes the priced pieces by price (descending)
+     * and recursively cuts the board via {@link #cutRectangle}, summing the prices of the chosen
+     * pieces. Because sub-rectangles are recomputed on every branch, this version is exponential;
+     * see {@link WoodSellerWithCache} for the memoized refinement.</p>
+     *
+     * @param m      board height
+     * @param n      board width
+     * @param prices available pieces, each as {@code [height, width, price]}
+     * @return the best total price achievable for the board
+     */
     public long sellingWood(int m, int n, int[][] prices) {
         SortedMap<Integer, List<PricedRectangle>> prMap = Collections.unmodifiableSortedMap(toPRMap(prices));
         System.out.println("Composed PR Map: " + prMap);
@@ -32,6 +46,18 @@ public class WoodSeller {
         return Long.valueOf(cost);
     }
 
+    /**
+     * Recursively finds the highest-value way to cut {@code rect}. For every priced piece that
+     * fits, it "sells" that piece, splits the remainder into sub-rectangles (via
+     * {@link #splitRectangle}), solves each sub-rectangle recursively, and keeps whichever choice
+     * yields the greatest total. Solutions are held in a price-descending {@link TreeMap} so the
+     * best is {@code firstKey()}.
+     *
+     * @param rect  the rectangle to cut
+     * @param prMap priced pieces indexed by price (descending)
+     * @param level current recursion depth, used only for indented tracing
+     * @return the piece list realizing the best price, or {@code null} if nothing fits
+     */
     private List<PricedRectangle> cutRectangle(Rectangle rect, SortedMap<Integer, List<PricedRectangle>> prMap, int level) {
     	final String indent = spaces(level);
 		System.out.println(indent + "Tackling " + rect);
@@ -73,6 +99,16 @@ public class WoodSeller {
         return solutions.get(solutions.firstKey());
     }
 
+    /**
+     * Splits {@code rect} into the leftover rectangles after cutting out piece {@code pr} from its
+     * top-left corner. Produces up to three pieces: the strip below {@code pr}, the strip to its
+     * right, and the bottom-right remainder (only the dimensions that actually overhang are
+     * emitted, so a flush cut yields fewer pieces).
+     *
+     * @param rect the rectangle being cut
+     * @param pr   the piece removed from the top-left corner
+     * @return the leftover rectangles (0 to 3 of them)
+     */
     public List<Rectangle> splitRectangle(Rectangle rect, PricedRectangle pr) {
     	List<Rectangle> list = new ArrayList<>();
     	if (rect.h > pr.h) {
@@ -90,6 +126,13 @@ public class WoodSeller {
 		return list;
 	}
 
+    /**
+     * Groups the raw {@code prices} rows into a price-descending map so {@link #cutRectangle} can
+     * try the most valuable pieces first.
+     *
+     * @param prices available pieces, each as {@code [height, width, price]}
+     * @return priced pieces bucketed by price, highest price first
+     */
     private SortedMap<Integer, List<PricedRectangle>> toPRMap(int[][] prices) {
         SortedMap<Integer, List<PricedRectangle>> map = new TreeMap<>(Collections.reverseOrder());
         for (int[] price: prices) {
@@ -146,6 +189,11 @@ public class WoodSeller {
 
     }
 
+	/**
+	 * Ad-hoc test harness exercising {@code sellingWood} against a sample board. Most historical
+	 * cases are commented out; the active assertion checks a 20x13 board against the recursive
+	 * (non-memoized) semantics of this class.
+	 */
 	public static void main(String[] args) {
 		WoodSeller sol = new WoodSeller();
 		

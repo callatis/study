@@ -2,8 +2,33 @@ package org.callatis.study.solutions;
 
 import junit.framework.Assert;
 
+/**
+ * Canonical dynamic-programming solution for
+ * {@link https://leetcode.com/problems/selling-pieces-of-wood/description/}.
+ *
+ * <p>Unlike {@link WoodSeller} / {@link WoodSellerWithCache}, this uses the intended
+ * <em>guillotine</em> cut: every cut runs the full height or full width of the board, so a
+ * rectangle is only ever split into two pieces. That property makes a simple {@code O(m*n*(m+n))}
+ * bottom-up table exact and optimal.</p>
+ *
+ * @author mishe
+ */
 public class WoodSellerLeetCode {
 	    
+    /**
+     * Computes the maximum revenue for an {@code m x n} board using bottom-up dynamic programming.
+     *
+     * <p>{@code dp[w][h]} holds the best price for a {@code w x h} sub-board. It is seeded with the
+     * direct sale price of any listed piece of exactly that size, then improved by trying every
+     * full-width horizontal cut ({@code dp[a][h] + dp[w-a][h]}) and every full-height vertical cut
+     * ({@code dp[w][a] + dp[w][h-a]}). Iterating sizes in increasing order guarantees both halves
+     * are already solved, so {@code dp[m][n]} is the answer.</p>
+     *
+     * @param m      board height
+     * @param n      board width
+     * @param prices available pieces, each as {@code [height, width, price]}
+     * @return the maximum achievable revenue
+     */
     public long sellingWood(int m, int n, int[][] prices) {
     	long[][] dp = new long[m + 1][n + 1];
         for (int[] p : prices)
@@ -29,6 +54,10 @@ public class WoodSellerLeetCode {
         return dp[m][n];
     }
 
+	/**
+	 * Ad-hoc test harness. The active assertion checks the 20x13 LeetCode example expects
+	 * {@code 70}, which this guillotine-cut DP produces (and which the corner-cut variants do not).
+	 */
 	public static void main(String[] args) {
 		WoodSellerLeetCode sol = new WoodSellerLeetCode();
 		

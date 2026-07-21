@@ -34,6 +34,22 @@ import junit.framework.Assert;
  */
 public class WoodSellerWithCache {
 	    
+    /**
+     * Returns the maximum revenue obtainable by cutting an {@code m x n} board into the priced
+     * pieces in {@code prices} (each row is {@code [height, width, price]}), memoizing every
+     * solved sub-rectangle.
+     *
+     * <p>Same recursive strategy as {@link WoodSeller}, but each rectangle is solved once and
+     * cached in a {@link HashMap} keyed by {@link Rectangle}, collapsing the exponential blow-up
+     * to one computation per distinct sub-rectangle. As the class Javadoc notes, this models an
+     * "L-shaped" corner cut rather than LeetCode's full-width/height guillotine cut, so it can
+     * report a lower optimum for some boards.</p>
+     *
+     * @param m      board height
+     * @param n      board width
+     * @param prices available pieces, each as {@code [height, width, price]}
+     * @return the best total price achievable under this cutting model
+     */
     public long sellingWood(int m, int n, int[][] prices) {
         SortedMap<Integer, List<PricedRectangle>> prMap = Collections.unmodifiableSortedMap(toPRMap(prices));
         System.out.println("Composed PR Map: " + prMap);
@@ -57,8 +73,10 @@ public class WoodSellerWithCache {
     }
 
 	/**
-	 * @param prList
-	 * @return
+	 * Sums the prices of a chosen piece list.
+	 *
+	 * @param prList the pieces selected for a rectangle, or {@code null}
+	 * @return the total price, or {@code 0} when the list is {@code null}
 	 */
 	private long computeCost(List<PricedRectangle> prList) {
 		int cost = 0;
@@ -70,6 +88,17 @@ public class WoodSellerWithCache {
         return Long.valueOf(cost);
 	}
 
+    /**
+     * Memoizing wrapper around {@link #doCutRectangle}: returns the cached best-piece list for
+     * {@code rect} if present, otherwise computes it once and stores the result (including
+     * {@code null} for rectangles nothing fits into).
+     *
+     * @param rect  the rectangle to cut
+     * @param prMap priced pieces indexed by price (descending)
+     * @param cache shared rectangle-to-solution memo
+     * @param level current recursion depth, used only for indented tracing
+     * @return the best-price piece list for {@code rect}, or {@code null}
+     */
     private List<PricedRectangle> cutRectangle(Rectangle rect, SortedMap<Integer, List<PricedRectangle>> prMap, 
     		Map<Rectangle, List<PricedRectangle>> cache, int level) {
     	List<PricedRectangle> resultList = cache.get(rect);
@@ -87,6 +116,17 @@ public class WoodSellerWithCache {
     	return resultList;
     }
     
+    /**
+     * Does the actual work behind {@link #cutRectangle}: for every priced piece that fits, sell
+     * it, recurse on the leftover pieces from {@link #splitRectangle}, and keep the highest-value
+     * combination (tracked in a price-descending {@link TreeMap}).
+     *
+     * @param rect  the rectangle to cut
+     * @param prMap priced pieces indexed by price (descending)
+     * @param cache shared rectangle-to-solution memo passed through to recursive calls
+     * @param level current recursion depth, used only for indented tracing
+     * @return the best-price piece list for {@code rect}, or {@code null} if nothing fits
+     */
     private List<PricedRectangle> doCutRectangle(Rectangle rect, SortedMap<Integer, List<PricedRectangle>> prMap, 
     		Map<Rectangle, List<PricedRectangle>> cache, int level) {
     	final String indent = spaces(level);
@@ -129,6 +169,15 @@ public class WoodSellerWithCache {
         return solutions.get(solutions.firstKey());
     }
 
+    /**
+     * Splits {@code rect} into the leftover rectangles after cutting out piece {@code pr} from its
+     * top-left corner: the strip below {@code pr}, the strip to its right, and the bottom-right
+     * remainder (only the overhanging dimensions are emitted).
+     *
+     * @param rect the rectangle being cut
+     * @param pr   the piece removed from the top-left corner
+     * @return the leftover rectangles (0 to 3 of them)
+     */
     public List<Rectangle> splitRectangle(Rectangle rect, PricedRectangle pr) {
     	List<Rectangle> list = new ArrayList<>();
     	if (rect.h > pr.h) {
@@ -146,6 +195,13 @@ public class WoodSellerWithCache {
 		return list;
 	}
 
+    /**
+     * Groups the raw {@code prices} rows into a price-descending map so the most valuable pieces
+     * are tried first.
+     *
+     * @param prices available pieces, each as {@code [height, width, price]}
+     * @return priced pieces bucketed by price, highest price first
+     */
     private SortedMap<Integer, List<PricedRectangle>> toPRMap(int[][] prices) {
         SortedMap<Integer, List<PricedRectangle>> map = new TreeMap<>(Collections.reverseOrder());
         for (int[] price: prices) {
@@ -217,6 +273,12 @@ public class WoodSellerWithCache {
 
     }
 
+	/**
+	 * Ad-hoc test harness. Verifies {@link #splitRectangle} on two corner-cut cases, then checks
+	 * {@code sellingWood} across several boards. The final 20x13 case asserts {@code 63} — the
+	 * optimum under this class's corner-cut model — rather than LeetCode's expected {@code 70},
+	 * as explained in the class Javadoc.
+	 */
 	public static void main(String[] args) {
 		WoodSellerWithCache sol = new WoodSellerWithCache();
 		
